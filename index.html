@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My Words</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#B9A4F0">
+<link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -99,7 +102,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 function $(s){return document.querySelector(s);}
 function status(w){return w.box>=4?'Learned':(w.reviews>0||w.box>0?'Learning':'New');}
 function byId(id){for(var i=0;i<S.words.length;i++){if(S.words[i].id===id)return S.words[i];}return null;}
-function canSpeak(){return !!tts||('speechSynthesis' in window);}
+function canSpeak(){return true;}
 function toast(m){var t=$('#toast');t.textContent=m;t.className='on';clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='';},1800);}
 
 /* ---------- storage ---------- */
@@ -113,31 +116,18 @@ function save(){
     try{var p=ref.set({items:S.words,t:S.t});if(p&&p.catch)p.catch(function(){});}catch(e){}
   },600);
 }
-async function use(n){try{return window.claude&&claude.use?await claude.use(n):null;}catch(e){return null;}}
-async function connect(){
-  sample=await use('sample');tts=await use('tts');
-  var db=await use('db'),user=await use('user');
-  if(db&&user){
-    try{
-      var id=await user.id();
-      ref=db.doc('data/users/'+id+'/vocab/list');
-      var snap=await ref.get();
-      var d=snap&&(typeof snap.data==='function'?snap.data():snap);
-      if(d&&d.items&&(d.t||0)>S.t){S.words=d.items;S.t=d.t||0;try{localStorage.setItem(LS,JSON.stringify({items:S.words,t:S.t}));}catch(e){}}
-      else if(S.words.length){ref.set({items:S.words,t:S.t});}
-      S.storage='account';
-    }catch(e){ref=null;}
-  }
-  var a=document.activeElement;
-  if(!(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')))render();
-}
+function connect(){}
 
 /* ---------- speech ---------- */
 function speak(text){
+  var audio='';
+  if(S.add.res&&S.add.res.word===text)audio=S.add.res.audio;
+  S.words.forEach(function(w){if(w.word===text&&w.audio)audio=w.audio;});
   try{
-    if(tts){tts.speak(text,{language:'en'}).catch(function(){});return;}
-    if('speechSynthesis' in window){var u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}
+    if(audio){var au=new Audio(audio);au.play().catch(function(){fallback();});return;}
   }catch(e){}
+  fallback();
+  function fallback(){try{if('speechSynthesis' in window){var u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}}catch(e){}}
 }
 var SPK='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
 function spk(w){return canSpeak()?'<button class="speak" data-act="speak" data-w="'+esc(w)+'" aria-label="Hear '+esc(w)+'">'+SPK+'</button>':'';}
@@ -149,30 +139,27 @@ async function lookup(){
   var dup=null;for(var i=0;i<S.words.length;i++){if(S.words[i].word.toLowerCase()===w.toLowerCase())dup=S.words[i];}
   if(dup){S.open=dup.id;S.tab='words';toast('Already saved');render();return;}
   a.err='';a.res=null;
-  if(!sample){a.res={word:w,pos:'',ipa:'',say:'',meaning:'',example:'',tip:'',manual:true};a.err='Meaning lookup is not available here. Type the meaning yourself.';render();return;}
   a.busy=true;render();
-  var p='You are a vocabulary tutor for a learner who reads English books. Word: "'+w+'".'+(a.sentence.trim()?' Sentence from the book: "'+a.sentence.trim()+'".':'')+
-   ' Reply with JSON only, with these keys: word (correct spelling, lowercase), pos (part of speech), ipa (US IPA between slashes), say (easy respelling like ih-FEM-er-ul, stressed syllable in CAPITALS), meaning (one short sentence in very simple English'+(a.sentence.trim()?', matching the book sentence':'')+'), example (one new easy sentence using the word), tip (one short memory trick).';
   try{
-    var r=await sample.json(p,{modelTier:'quick'});
-    if(!r||!r.meaning)throw new Error('empty');
-    a.res={word:String(r.word||w),pos:String(r.pos||''),ipa:String(r.ipa||''),say:String(r.say||''),meaning:String(r.meaning||''),example:String(r.example||''),tip:String(r.tip||'')};
-  }catch(e){
-    a.res={word:w,pos:'',ipa:'',say:'',meaning:'',example:'',tip:'',manual:true};
-    a.err='Could not get the meaning. You can type it yourself.';
+    var resp=await fetch('https://api.dictionaryapi.dev/v2/entries/en/'+encodeURIComponent(w));
+    if(!resp.ok)throw new Error('nf');
+    var data=await resp.json(),e=data[0],ipa='',audio='',m=null,def=null,ex='';
+    ipa=e.phonetic||'';
+    (e.phonetics||[]).forEach(function(p){if(!ipa&&p.text)ipa=p.text;if(!audio&&p.audio)audio=p.audio;});
+    m=(e.meanings||[])[0];
+    if(m){def=(m.definitions||[])[0];}
+    (e.meanings||[]).forEach(function(mm){(mm.definitions||[]).forEach(function(d){if(!ex&&d.example)ex=d.example;});});
+    if(!def)throw new Error('nodef');
+    a.res={word:String(e.word||w),pos:String(m.partOfSpeech||''),ipa:ipa,say:'',audio:audio,meaning:String(def.definition),example:ex,tip:''};
+  }catch(err){
+    a.res={word:w,pos:'',ipa:'',say:'',audio:'',meaning:'',example:'',tip:'',manual:true};
+    a.err=(navigator.onLine===false?'You are offline. ':'Word not found. ')+'You can type the meaning yourself.';
   }
   a.busy=false;render();
 }
-async function checkSentence(w,text,where){
+function checkSentence(w,text,where){
   if(!text.trim()){toast('Write a sentence first');return;}
-  if(!sample){toast('Feedback is not available here');return;}
-  if(where==='pr'){S.pr.busy=true;}else{S.busyDetail=true;}render();
-  var p='A learner wrote one sentence using the word "'+w.word+'" (meaning: '+w.meaning+'). Sentence: "'+text.trim()+'". Reply with JSON only: ok (true if the word is used correctly), comment (one short, kind sentence), better (an improved version of their sentence, or empty string if it is already good).';
-  var fb;
-  try{var r=await sample.json(p,{modelTier:'quick',cache:false});fb={ok:!!r.ok,comment:String(r.comment||''),better:String(r.better||'')};}
-  catch(e){fb={ok:null,comment:'Could not check this one. Try again in a moment.',better:''};}
-  if(where==='pr'){S.pr.busy=false;S.pr.fb=fb;}else{S.busyDetail=false;S.fbDetail=fb;}
-  w.mine=text.trim();save();render();
+  w.mine=text.trim();save();toast('Sentence saved');
 }
 
 /* ---------- views ---------- */
@@ -221,7 +208,7 @@ function vWords(){
    '<div class="chips">';
   ['All','New','Learning','Learned'].forEach(function(f){h+='<button class="chip" data-act="filter" data-f="'+f+'" aria-pressed="'+(S.filter===f)+'">'+f+'</button>';});
   h+='</div><div id="list" style="display:flex;flex-direction:column;gap:10px">'+listHtml()+'</div>';
-  if(S.storage==='device'&&S.words.length)h+='<p class="note">Saved on this device.</p>';
+  if(S.words.length)h+='<p class="note">Saved on this device.</p>';
   return h;
 }
 function vDetail(w){
@@ -232,7 +219,7 @@ function vDetail(w){
   if(w.book)h+='<div class="plain"><div class="cap">FROM YOUR BOOK</div>'+esc(w.book)+'</div>';
   if(w.tip)h+='<div class="card peach" style="gap:4px"><div class="cap" style="color:var(--peach-ink)">MEMORY TIP</div>'+esc(w.tip)+'</div>';
   h+='<div class="card lilac"><label for="ms" style="color:var(--lilac-ink)">MY OWN SENTENCE</label><textarea id="ms" data-in="ms" rows="2" placeholder="Write a sentence using this word">'+esc(w.mine||'')+'</textarea>'+
-     '<button class="btn" data-act="checkd"'+(S.busyDetail?' disabled':'')+'>'+(S.busyDetail?'Checking…':'Check my sentence')+'</button>'+fbHtml(S.fbDetail)+'</div>';
+     '<button class="btn" data-act="checkd"'+(S.busyDetail?' disabled':'')+'>'+(S.busyDetail?'Saving…':'Save my sentence')+'</button>'+fbHtml(S.fbDetail)+'</div>';
   h+=S.confirmDel?'<div class="row"><button class="btn ghost" data-act="delno" style="flex:1">Keep it</button><button class="btn" data-act="delyes" style="flex:1;background:var(--peach);color:var(--peach-ink)">Delete word</button></div>'
                  :'<button class="btn ghost" data-act="del">Delete this word</button>';
   return h;
@@ -261,7 +248,7 @@ function vPractice(){
   if(!p.shown){h+='<button class="btn" data-act="show" style="min-height:56px">Show meaning</button>';}
   else{
     h+='<div class="grade"><button class="btn" data-act="again" style="background:var(--peach);color:var(--peach-ink)">Again</button><button class="btn" data-act="got" style="background:var(--mint);color:var(--mint-ink)">Got it</button></div>';
-    h+='<div class="card lilac"><label for="ps" style="color:var(--lilac-ink)">USE IT: write one sentence</label><textarea id="ps" data-in="ps" rows="2">'+esc(p.sentence)+'</textarea><button class="btn" data-act="checkp"'+(p.busy?' disabled':'')+'>'+(p.busy?'Checking…':'Check my sentence')+'</button>'+fbHtml(p.fb)+'</div>';
+    h+='<div class="card lilac"><label for="ps" style="color:var(--lilac-ink)">USE IT: write one sentence</label><textarea id="ps" data-in="ps" rows="2">'+esc(p.sentence)+'</textarea><button class="btn" data-act="checkp"'+(p.busy?' disabled':'')+'>'+(p.busy?'Saving…':'Save my sentence')+'</button>'+fbHtml(p.fb)+'</div>';
   }
   return h;
 }
@@ -303,7 +290,7 @@ document.addEventListener('click',function(e){
     var r=S.add.res;if(!r)return;
     if(!r.meaning.trim()){S.add.err='Add the meaning first.';render();return;}
     var now=Date.now();
-    S.words.push({id:now.toString(36)+Math.random().toString(36).slice(2,5),word:r.word.trim()||S.add.word.trim(),pos:r.pos,ipa:r.ipa,say:r.say,meaning:r.meaning.trim(),example:r.example,tip:r.tip,book:S.add.sentence.trim(),mine:'',added:now,box:0,reviews:0,due:now});
+    S.words.push({id:now.toString(36)+Math.random().toString(36).slice(2,5),word:r.word.trim()||S.add.word.trim(),pos:r.pos,ipa:r.ipa,say:r.say,audio:r.audio||'',meaning:r.meaning.trim(),example:r.example,tip:r.tip,book:S.add.sentence.trim(),mine:'',added:now,box:0,reviews:0,due:now});
     S.add={word:'',sentence:'',res:null,busy:false,err:''};save();toast('Saved');S.tab='words';render();
   }
   else if(act==='open'){S.open=b.getAttribute('data-id');S.fbDetail=null;S.confirmDel=false;render();}
@@ -330,7 +317,8 @@ document.addEventListener('click',function(e){
   else if(act==='prdue'){startPractice(false);render();}
 });
 
-loadLocal();render();connect();
+loadLocal();render();
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 })();
 </script>
 </body>

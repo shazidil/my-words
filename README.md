@@ -2,8 +2,13 @@
 
 A phone-friendly vocabulary app for words you meet while reading books.
 
-- **Add:** type a word (and the book sentence) to get the meaning, pronunciation, an example and a memory tip.
-- **My words:** search and filter your saved words, write your own sentence for each.
-- **Practice:** flashcards with spaced repetition and sentence feedback.
+- **Add:** type a word (and the book sentence) to get the meaning, pronunciation and an example.
+- **My words:** search and filter saved words, save your own sentence for each.
+- **Practice:** flashcards with spaced repetition.
 
-`index.html` is a single self-contained page. It was built as a Claude artifact and uses its sample, db, user and tts capabilities, with a localStorage fallback for saving.
+## Install on Android
+Open the GitHub Pages link in Chrome, tap the menu, then "Install app".
+
+Words are saved on your phone. Meanings come from the free dictionaryapi.dev service, so looking up a new word needs internet; saved words work offline.
+
+`claude-artifact/` holds the original version that runs inside Claude.
