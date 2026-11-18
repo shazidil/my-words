@@ -247,7 +247,10 @@ var S={tab:'home',words:[],t:0,open:null,q:'',filter:'All',bookF:'All books',con
   pr:{queue:[],i:0,shown:false,total:0,sentence:'',finished:false,started:false,good:0}};
 var SKINS=[['cozy','Cozy Library','#12292D','#1B3F45','#E8A94B','#1F7F7E','#F7EAD3','covers','Covers on glowing shelves'],['academia','Dark Academia','#1B1110','#2A1A17','#D6A94F','#6B3F26','#F1E3CB','spines','Leather spines on a bookcase'],['cottage','Cottage Stack','#EEF1E2','#F8F8EE','#4F7A42','#B88B5A','#33402F','stacks','Cosy piles of books'],['pastel','Soft Pastel','#F6F0E8','#FCF9F4','#6F58B5','#C99A6B','#3A3050','gallery','Clean cover gallery'],['sepia','Old Paper','#EADBBE','#F6ECD6','#8B3A2B','#8A5A36','#3A291A','floating','Floating shelves']];
 var saveTimer=null,toastTimer=null;
-function layoutOf(){var l='covers';SKINS.forEach(function(k){if(k[0]===S.skin)l=k[7];});return l;}
+var LAYOUTS=[['covers','Cover Shelf','Covers on wooden shelves'],['spines','Spine Bookcase','Books standing spine-out'],['stacks','Book Piles','Cosy stacks of books'],['gallery','Cover Gallery','A clean grid of covers'],['floating','Floating Shelves','Tilted covers on thin shelves']];
+function layoutOf(){return S.layout||'covers';}
+function curSkin(){var f=SKINS[0];SKINS.forEach(function(k){if(k[0]===S.skin)f=k;});return f;}
+function setLayout(id,keep){var ok=false;LAYOUTS.forEach(function(l){if(l[0]===id)ok=true;});if(!ok)id='covers';S.layout=id;if(!keep&&!DEMO){try{localStorage.setItem('mywords.layout',id);}catch(e){}}}
 function setSkin(id,keep){
   var f=null;SKINS.forEach(function(k){if(k[0]===id)f=k;});if(!f){f=SKINS[0];id=f[0];}
   S.skin=id;document.documentElement.setAttribute('data-skin',id);
@@ -497,8 +500,10 @@ function pip(size){
   '<path d="M92 78q8 8 16 0" stroke="#2B3A2B" stroke-width="3.5" fill="none" stroke-linecap="round"/>'+
   '<path class="spark" d="M30 70l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#F2A33A"/><path class="spark" d="M168 54l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z" fill="#F29B7E"/><path class="spark" d="M160 110l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#9AD88F"/></svg>';
 }
-function skinTiles(act){return '<div class="themes" style="width:100%">'+SKINS.map(function(k){return '<button class="theme" data-act="'+act+'" data-s="'+k[0]+'" aria-pressed="'+(S.skin===k[0])+'" style="background:'+k[2]+';color:'+k[6]+'">'+miniLayout(k)+k[1]+'<small>'+k[8]+'</small></button>';}).join('')+'</div>';}
+function skinTiles(act){return '<div class="themes" style="width:100%">'+SKINS.map(function(k){return '<button class="theme" data-act="'+act+'" data-s="'+k[0]+'" aria-pressed="'+(S.skin===k[0])+'" style="background:'+k[2]+';color:'+k[6]+'"><span class="sw"><i style="background:'+k[3]+'"></i><i style="background:'+k[4]+'"></i><i style="background:'+k[5]+'"></i></span>'+k[1]+'</button>';}).join('')+'</div>';}
+function layoutTiles(act){var c=curSkin();return '<div class="themes" style="width:100%">'+LAYOUTS.map(function(l){return '<button class="theme" data-act="'+act+'" data-s="'+l[0]+'" aria-pressed="'+(layoutOf()===l[0])+'" style="background:'+c[2]+';color:'+c[6]+'">'+miniLayout(['','',c[2],c[3],c[4],c[5],c[6],l[0]])+l[1]+'<small>'+l[2]+'</small></button>';}).join('')+'</div>';}
 function goalChips(act,cur,vals,suffix){return '<div class="chips">'+vals.map(function(v){return '<button class="chip" data-act="'+act+'" data-v="'+v+'" aria-pressed="'+(cur==v)+'">'+v+(suffix||'')+'</button>';}).join('')+'</div>';}
+function dots(n){var h='<div class="dots">';for(var i=1;i<=4;i++)h+='<i'+(i===n?' class="on"':'')+'></i>';return h+'</div>';}
 function renderOverlay(){
   var o=$('#overlay'),h='';
   if(S.stage==='app'){o.className='';o.innerHTML='';return;}
@@ -506,11 +511,13 @@ function renderOverlay(){
   if(S.stage==='splash'){
     h='<button class="ob" data-act="skipsplash" style="background:none;border:0;color:inherit;font:inherit;cursor:pointer">'+pip(190)+'<h1>Welcome back'+(nm?', '+nm:'')+'!</h1><p class="sub">Let us grow your word shelf today.</p><span class="note">Tap to continue</span></button>';
   }else if(S.ob===1){
-    h='<div class="ob">'+pip(190)+'<h1>Hi, I am Pip!</h1><p class="sub">Your little reading buddy. I will help you remember every new word you find in your books.</p><label for="obn" style="align-self:stretch;text-align:left">What should I call you?</label><input id="obn" data-in="obn" value="'+nm+'" placeholder="Your name" autocomplete="given-name" maxlength="24"><button class="btn" data-act="obnext" style="align-self:stretch;min-height:52px">Next</button><div class="dots"><i class="on"></i><i></i><i></i></div></div>';
+    h='<div class="ob">'+pip(190)+'<h1>Hi, I am Pip!</h1><p class="sub">Your little reading buddy. I will help you remember every new word you find in your books.</p><label for="obn" style="align-self:stretch;text-align:left">What should I call you?</label><input id="obn" data-in="obn" value="'+nm+'" placeholder="Your name" autocomplete="given-name" maxlength="24"><button class="btn" data-act="obnext" style="align-self:stretch;min-height:52px">Next</button>'+dots(1)+'</div>';
   }else if(S.ob===2){
-    h='<div class="ob"><h1>Choose your library</h1><p class="sub">Every library shows your books in its own way. You can change it later in Settings.</p>'+skinTiles('obskin')+'<div class="row" style="align-self:stretch"><button class="btn ghost" data-act="obback" style="flex:1">Back</button><button class="btn" data-act="obnext" style="flex:2">Next</button></div><div class="dots"><i></i><i class="on"></i><i></i></div></div>';
+    h='<div class="ob"><h1>How should your library look?</h1><p class="sub">Pick a layout for your books. You can change it any time in Settings.</p>'+layoutTiles('oblayout')+'<div class="row" style="align-self:stretch"><button class="btn ghost" data-act="obback" style="flex:1">Back</button><button class="btn" data-act="obnext" style="flex:2">Next</button></div>'+dots(2)+'</div>';
+  }else if(S.ob===3){
+    h='<div class="ob"><h1>Choose your colors</h1><p class="sub">Colors are separate from the layout, so you can mix any two.</p>'+skinTiles('obskin')+'<div class="row" style="align-self:stretch"><button class="btn ghost" data-act="obback" style="flex:1">Back</button><button class="btn" data-act="obnext" style="flex:2">Next</button></div>'+dots(3)+'</div>';
   }else{
-    h='<div class="ob">'+pip(130)+'<h1>Pick a daily goal</h1><p class="sub">How many words do you want to practice each day? A small goal is easy to keep.</p>'+goalChips('obgoal',S.settings.goal,[3,5,10,15],' words')+'<div class="row" style="align-self:stretch"><button class="btn ghost" data-act="obback" style="flex:1">Back</button><button class="btn" data-act="obdone" style="flex:2">Start reading</button></div><div class="dots"><i></i><i></i><i class="on"></i></div></div>';
+    h='<div class="ob">'+pip(130)+'<h1>Pick a daily goal</h1><p class="sub">How many words do you want to practice each day? A small goal is easy to keep.</p>'+goalChips('obgoal',S.settings.goal,[3,5,10,15],' words')+'<div class="row" style="align-self:stretch"><button class="btn ghost" data-act="obback" style="flex:1">Back</button><button class="btn" data-act="obdone" style="flex:2">Start reading</button></div>'+dots(4)+'</div>';
   }
   o.innerHTML=h;o.className='on';
 }
@@ -521,7 +528,8 @@ function exportCsv(){var rows=[['Word','Part of speech','Pronunciation','Meaning
 function vSettings(){
   var h='<div><h1>Settings</h1><p class="sub">Make My Words feel like yours.</p></div>';
   h+='<div class="setcard"><h2>You</h2><label for="sn">Your name</label><input id="sn" data-in="sn" value="'+esc(S.settings.name)+'" placeholder="Your name" maxlength="24" autocomplete="given-name"></div>';
-  h+='<div class="setcard"><h2>Library style</h2><p class="sub">Each style shows your books in a different way.</p>'+skinTiles('skin')+'</div>';
+  h+='<div class="setcard"><h2>Library layout</h2><p class="sub">How your books are shown on the shelf.</p>'+layoutTiles('layout')+'</div>';
+  h+='<div class="setcard"><h2>Colors</h2><p class="sub">The look and feel. It works with any layout.</p>'+skinTiles('skin')+'</div>';
   h+='<div class="setcard"><h2>Daily goal</h2>'+goalChips('setgoal',S.settings.goal,[3,5,10,15],' words')+'<h2>Words in one practice</h2>'+goalChips('setsess',S.settings.session,[5,10,20],' words')+'<h2>Text size</h2><div class="chips">'+[['small','Small'],['normal','Normal'],['large','Large']].map(function(t){return '<button class="chip" data-act="settext" data-v="'+t[0]+'" aria-pressed="'+(S.settings.text===t[0])+'">'+t[1]+'</button>';}).join('')+'</div></div>';
   h+='<div class="setcard"><h2>Install</h2>'+(S.deferred?'<button class="btn" data-act="installapp">Install My Words on this device</button>':'<p class="about"><b>Android (Chrome):</b> tap the ⋮ menu, then Install app.<br><b>iPhone and iPad (Safari):</b> tap Share, then Add to Home Screen.</p>')+'</div>';
   h+='<div class="setcard"><h2>Your data</h2><p class="about">Your words are saved on this device. Make a backup now and then.</p><div class="row" style="flex-wrap:wrap"><button class="btn small soft" data-act="exportcsv">Export as CSV</button><button class="btn small soft" data-act="exportjson">Backup file</button><label class="btn small soft" for="imp" style="display:inline-flex;align-items:center;cursor:pointer;text-transform:none;letter-spacing:0;font-size:15px;color:var(--lilac-ink)">Restore backup</label><input id="imp" type="file" accept="application/json,.json" style="position:absolute;left:-9999px"></div>'+
@@ -651,8 +659,9 @@ document.addEventListener('click',function(e){
   else if(act==='speak')speak(b.getAttribute('data-w'));
   else if(act==='themes'){S.tab='settings';render();}
   else if(act==='skin'||act==='obskin'){setSkin(b.getAttribute('data-s'));render();}
+  else if(act==='layout'||act==='oblayout'){setLayout(b.getAttribute('data-s'));render();}
   else if(act==='skipsplash'){S.stage='app';render();}
-  else if(act==='obnext'){S.ob=Math.min(3,S.ob+1);if(S.ob===2&&!S.settings.name){}renderOverlay();}
+  else if(act==='obnext'){S.ob=Math.min(4,S.ob+1);if(S.ob===2&&!S.settings.name){}renderOverlay();}
   else if(act==='obback'){S.ob=Math.max(1,S.ob-1);renderOverlay();}
   else if(act==='obgoal'||act==='setgoal'){S.settings.goal=+b.getAttribute('data-v');save();render();}
   else if(act==='setsess'){S.settings.session=+b.getAttribute('data-v');save();render();}
@@ -704,6 +713,8 @@ document.addEventListener('click',function(e){
 
 var mm=location.search.match(/[?&]skin=(\w+)/),sv='';try{sv=localStorage.getItem('mywords.skin')||'';}catch(e){}
 setSkin(mm?mm[1]:(sv||'cozy'),!!mm);
+var ml=location.search.match(/[?&]layout=(\w+)/),lv='';try{lv=localStorage.getItem('mywords.layout')||'';}catch(e){}
+setLayout(ml?ml[1]:(lv||'covers'),!!ml);
 document.addEventListener('error',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('cimg')){if(t.parentNode&&t.parentNode.classList)t.parentNode.classList.remove('has-img');t.remove();}},true);
 if(DEMO){demoData();S.settings.name='reader';S.settings.onboarded=true;}else loadLocal();
 applyText();
