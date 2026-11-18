@@ -592,7 +592,7 @@ function vSettings(){
   h+='<div class="setcard"><h2>Install</h2>'+(S.deferred?'<button class="btn" data-act="installapp">Install My Words on this device</button>':'<p class="about"><b>Android (Chrome):</b> tap the ⋮ menu, then Install app.<br><b>iPhone and iPad (Safari):</b> tap Share, then Add to Home Screen.</p>')+'</div>';
   h+='<div class="setcard"><h2>Your data</h2><p class="about">Your words are saved on this device. Make a backup now and then.</p><div class="row" style="flex-wrap:wrap"><button class="btn small soft" data-act="exportcsv">Export as CSV</button><button class="btn small soft" data-act="exportjson">Backup file</button><label class="btn small soft" for="imp" style="display:inline-flex;align-items:center;cursor:pointer;text-transform:none;letter-spacing:0;font-size:15px;color:var(--lilac-ink)">Restore backup</label><input id="imp" type="file" accept="application/json,.json" style="position:absolute;left:-9999px"></div>'+
      (S.confirmReset?'<div class="row"><button class="btn ghost small" data-act="resetno" style="flex:1">Keep my words</button><button class="btn again small" data-act="resetyes" style="flex:1">Delete everything</button></div>':'<button class="btn ghost small" data-act="resetask">Delete all my words</button>')+'</div>';
-  h+='<div class="setcard"><h2>About</h2><p class="about">My Words, version 1.0.<br>Meanings come from dictionaryapi.dev and Wiktionary. Book covers come from Open Library.</p></div>';
+  h+='<div class="setcard"><h2>About</h2><p class="about">My Words, version 1.0.</p></div>';
   return h;
 }
 function vSettingsDummy(){return '';}
