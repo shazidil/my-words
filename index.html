@@ -5,89 +5,124 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My Words</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#7A2F25">
+<meta name="theme-color" content="#6F58B5">
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,700;1,500&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Layout: one phone-width column shaped like an open book page; tab bar pinned at the bottom. */
+/* Layout: one phone-width column. Home is a shelf of book covers with a daily goal; tab bar floats at the bottom. */
 :root{
-  --bg:#EADFC8;--card:#FBF6EA;--ink:#33281E;--muted:#6B5B49;--line:#D9C9AA;
-  --lilac:#EFE3CB;--lilac-ink:#5A4630;--mint:#DFE8D0;--mint-ink:#3A5030;
-  --peach:#F3DCC8;--peach-ink:#7A4326;--sky:#DCE5E8;--sky-ink:#2F4A5A;
-  --accent:#7A2F25;--on-accent:#FBF6EA;--field:#FFFDF6;
-  --serif:'Lora',Georgia,'Times New Roman',serif;--ui:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --r-new:#B09A72;--r-learning:#C8812F;--r-learned:#5E7F4F;
+  --bg:#E4D6C8;--panel:#F6F0E8;--card:#FCF9F4;--ink:#3A3050;--muted:#675B72;--line:#E3D8CB;
+  --accent:#6F58B5;--on-accent:#FFFFFF;--coral:#C94A32;--field:#FFFFFF;
+  --lilac:#E7DFF6;--lilac-ink:#4A3A86;--mint:#DCEFE3;--mint-ink:#2D5E45;
+  --peach:#FADFD3;--peach-ink:#82381F;--sky:#DDE9F5;--sky-ink:#2E5379;
+  --grad:linear-gradient(90deg,#6F58B5,#C94A32);--on-grad:#FFFFFF;
+  --hero:linear-gradient(135deg,#E3DAF5,#F8DDD0);
+  --shadow:0 6px 18px rgba(80,55,40,.14);
+  --sans:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;--serif:'Lora',Georgia,serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#1B1510;--card:#262019;--ink:#EDE2CC;--muted:#BBAB92;--line:#3A3025;
-    --lilac:#33291D;--lilac-ink:#E7D3B0;--mint:#27352A;--mint-ink:#C5E0B8;
-    --peach:#40291D;--peach-ink:#F6C9A8;--sky:#22333D;--sky-ink:#BFD8E6;
-    --accent:#D98B76;--on-accent:#2A140F;--field:#2F271E;color-scheme:dark;
+    --bg:#16121D;--panel:#201B29;--card:#2A2435;--ink:#F2EBF8;--muted:#BDB2CB;--line:#3A3347;
+    --accent:#B3A2F0;--on-accent:#21173F;--coral:#F08A6E;--field:#322B3F;
+    --lilac:#373050;--lilac-ink:#DCD2FB;--mint:#223A2E;--mint-ink:#BCE6CC;
+    --peach:#47291F;--peach-ink:#FAC9B3;--sky:#21364B;--sky-ink:#C0DBF2;
+    --grad:linear-gradient(90deg,#9B86E6,#EE8467);--on-grad:#1E1432;--hero:linear-gradient(135deg,#352D52,#4A2E2B);
+    --shadow:0 6px 18px rgba(0,0,0,.4);color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#1B1510;--card:#262019;--ink:#EDE2CC;--muted:#BBAB92;--line:#3A3025;
-  --lilac:#33291D;--lilac-ink:#E7D3B0;--mint:#27352A;--mint-ink:#C5E0B8;
-  --peach:#40291D;--peach-ink:#F6C9A8;--sky:#22333D;--sky-ink:#BFD8E6;
-  --accent:#D98B76;--on-accent:#2A140F;--field:#2F271E;color-scheme:dark;
+  --bg:#16121D;--panel:#201B29;--card:#2A2435;--ink:#F2EBF8;--muted:#BDB2CB;--line:#3A3347;
+  --accent:#B3A2F0;--on-accent:#21173F;--coral:#F08A6E;--field:#322B3F;
+  --lilac:#373050;--lilac-ink:#DCD2FB;--mint:#223A2E;--mint-ink:#BCE6CC;
+  --peach:#47291F;--peach-ink:#FAC9B3;--sky:#21364B;--sky-ink:#C0DBF2;
+  --grad:linear-gradient(90deg,#9B86E6,#EE8467);--on-grad:#1E1432;--hero:linear-gradient(135deg,#352D52,#4A2E2B);
+  --shadow:0 6px 18px rgba(0,0,0,.4);color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:16px;line-height:1.45}
-#app{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--card);box-shadow:0 0 0 1px var(--line),0 10px 40px rgba(60,40,20,.25)}
-#view{flex:1;overflow-y:auto;padding:24px 18px 24px 26px;display:flex;flex-direction:column;gap:14px;background:
-  linear-gradient(90deg,rgba(0,0,0,.07),transparent 14px) left/100% 100% no-repeat,var(--card)}
-h1{margin:0;font-family:var(--serif);font-size:30px;font-weight:700;text-wrap:balance;letter-spacing:.2px}
-.sub{margin:0;color:var(--muted);font-size:15px;font-style:italic}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.4}
+#app{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--panel);position:relative}
+#view{flex:1;overflow-y:auto;padding:22px 16px 20px;display:flex;flex-direction:column;gap:16px}
+h1{margin:0;font-size:26px;font-weight:800;text-wrap:balance;line-height:1.15}
+h2{margin:0;font-size:18px;font-weight:800}
+.sub{margin:0;color:var(--muted);font-size:15px}
 .row{display:flex;align-items:center;gap:12px}
 .between{justify-content:space-between}
-.rule{height:0;border:0;border-top:1px solid var(--line);margin:0}
-.card{border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--line)}
-.lilac{background:var(--lilac)}.mint{background:var(--mint)}.peach{background:var(--peach)}.sky{background:var(--sky)}
-.plain{background:var(--field);border:1px solid var(--line);border-radius:4px;padding:14px 16px;box-shadow:0 1px 0 var(--line)}
-label,.cap{font-family:var(--ui);font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
-input,textarea,select{width:100%;border:1px solid var(--line);border-radius:4px;background:var(--field);color:var(--ink);font:500 16px var(--serif);padding:12px 14px}
-input{height:48px;padding-top:0;padding-bottom:0;font-size:18px}
-textarea{resize:none}
+.hello{font-size:14px;font-weight:700;color:var(--muted)}
+.card{background:var(--card);border-radius:24px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.tint-lilac{background:var(--lilac)}.tint-mint{background:var(--mint)}.tint-peach{background:var(--peach)}.tint-sky{background:var(--sky)}
+label,.cap{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.7px;text-transform:uppercase}
+input,textarea,select{width:100%;border:2px solid transparent;border-radius:16px;background:var(--field);color:var(--ink);font:600 16px var(--sans);padding:12px 16px}
+input{height:48px;padding-top:0;padding-bottom:0}
 select{height:48px;padding-top:0;padding-bottom:0}
+textarea{resize:none}
 input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.btn{min-height:48px;border:0;border-radius:4px;background:var(--accent);color:var(--on-accent);font:800 16px var(--ui);padding:0 18px;cursor:pointer;letter-spacing:.3px}
+.btn{min-height:48px;border:0;border-radius:24px;background:var(--grad);color:var(--on-grad);font:800 16px var(--sans);padding:0 22px;cursor:pointer;box-shadow:0 4px 12px rgba(111,88,181,.35)}
 .btn:disabled{opacity:.6}
-.btn.mintbtn{background:var(--mint-ink);color:var(--mint)}
-.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
-.pill{display:inline-block;border-radius:4px;padding:5px 11px;font-size:15px;font-weight:500;background:var(--field);color:var(--ink);border:1px solid var(--line)}
-.tag{border-radius:4px;padding:4px 10px;font-family:var(--ui);font-size:12px;font-weight:800;white-space:nowrap}
+.btn.soft{background:var(--lilac);color:var(--lilac-ink);box-shadow:none}
+.btn.ghost{background:transparent;color:var(--muted);box-shadow:none;border:2px solid var(--line)}
+.pill{display:inline-block;border-radius:14px;padding:6px 12px;font-size:15px;font-weight:700;background:var(--field);color:var(--ink)}
+.tag{border-radius:12px;padding:4px 10px;font-size:12px;font-weight:800;white-space:nowrap}
 .t-New{background:var(--lilac);color:var(--lilac-ink)}.t-Learning{background:var(--peach);color:var(--peach-ink)}.t-Learned{background:var(--mint);color:var(--mint-ink)}
-.speak{width:48px;height:48px;flex:none;border:1px solid var(--line);border-radius:24px;background:var(--field);color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.speak{width:48px;height:48px;flex:none;border:0;border-radius:24px;background:var(--field);color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 .word{font-family:var(--serif);font-size:30px;font-weight:700;line-height:1.1;overflow-wrap:anywhere}
-.pos{font-style:italic;color:var(--muted);font-size:15px}
-.item{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;min-height:56px;padding-right:44px}
-.item .w{font-family:var(--serif);font-size:20px;font-weight:700}
-.item .s{font-size:13px;color:var(--muted);margin-left:8px;font-style:italic}
-.item .m{font-size:14px;color:var(--muted)}
-.item .bk{font-family:var(--ui);font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--accent)}
-.rib{position:absolute;top:-1px;right:14px;width:20px;height:34px;clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%)}
-.r-New{background:var(--r-new)}.r-Learning{background:var(--r-learning)}.r-Learned{background:var(--r-learned)}
+.pos{font-family:var(--serif);font-style:italic;color:var(--muted);font-size:15px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{border:1px solid var(--line);border-radius:4px;padding:10px 14px;min-height:44px;font:700 14px var(--ui);background:var(--field);color:var(--muted);cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:800}
-.bar{height:8px;border-radius:2px;background:var(--lilac);border:1px solid var(--line)}
-.bar>div{height:100%;background:var(--accent);transition:width .3s}
-.flash{background:repeating-linear-gradient(transparent 0 31px,rgba(70,110,160,.22) 31px 32px),var(--field);border:1px solid var(--line);border-top:4px solid #C9695C;border-radius:4px;padding:26px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;box-shadow:0 6px 16px rgba(60,40,20,.15)}
+.chip{border:0;border-radius:18px;padding:10px 16px;min-height:44px;font:800 14px var(--sans);background:var(--card);color:var(--muted);cursor:pointer;box-shadow:0 2px 6px rgba(80,55,40,.1)}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.bar{height:10px;border-radius:5px;background:var(--lilac)}
+.bar>div{height:100%;border-radius:5px;background:var(--grad);transition:width .3s}
+.back{background:none;border:0;color:var(--muted);font:800 15px var(--sans);display:flex;align-items:center;gap:6px;min-height:44px;padding:0;cursor:pointer;align-self:flex-start}
+.note{font-size:13px;color:var(--muted)}
+.err{font-size:14px;color:var(--peach-ink);background:var(--peach);border-radius:14px;padding:10px 14px}
+/* home */
+.streak{display:flex;align-items:center;gap:6px;background:var(--card);border-radius:20px;padding:8px 14px;box-shadow:var(--shadow);font-weight:800;font-size:15px}
+.hero{background:var(--hero);border-radius:28px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
+.ring{position:relative;width:64px;height:64px;flex:none}
+.ring svg{display:block}
+.ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.cat{border:0;background:var(--card);border-radius:20px;padding:12px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;font:800 12px var(--sans);color:var(--ink);cursor:pointer;box-shadow:var(--shadow);min-height:44px}
+.cat span{font-weight:600;color:var(--muted);font-size:12px}
+.shelf{display:flex;gap:18px;overflow-x:auto;padding:6px 4px 26px;scroll-snap-type:x mandatory;margin:0 -16px;padding-left:16px;padding-right:16px}
+.book{flex:none;width:116px;scroll-snap-align:start;text-align:left;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+.cover{position:relative;height:156px;border-radius:6px 12px 12px 6px;background:var(--c);box-shadow:inset 9px 0 0 rgba(0,0,0,.2),inset -2px 0 0 rgba(255,255,255,.2),0 8px 14px rgba(40,25,20,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px 12px 14px 20px;text-align:center}
+.cover::after{content:"";position:absolute;bottom:-16px;right:18px;width:16px;height:34px;background:#F2A33A;clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);box-shadow:0 2px 0 rgba(0,0,0,.1)}
+.cover i{display:block;width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.7)}
+.cover b{font-family:var(--serif);font-size:15px;line-height:1.2;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cover.add{background:transparent;border:2px dashed var(--accent);box-shadow:none;color:var(--accent)}
+.cover.add::after{display:none}
+.book .bt{font-weight:800;font-size:14px;margin-top:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.book .bn{font-size:12px;color:var(--coral);font-weight:800}
+.stack{display:flex;align-items:center;gap:14px}
+.wod{display:flex;flex-direction:column;gap:8px}
+/* words */
+.item{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;min-height:64px;padding:14px 44px 14px 16px;border:0;background:var(--card);border-radius:20px;box-shadow:var(--shadow);border-left:8px solid var(--c)}
+.item .w{font-family:var(--serif);font-size:20px;font-weight:700}
+.item .s{font-size:13px;color:var(--muted);margin-left:8px;font-family:var(--serif);font-style:italic}
+.item .m{font-size:14px;color:var(--muted)}
+.item .bk{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--coral)}
+.rib{position:absolute;top:-1px;right:16px;width:20px;height:32px;clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%)}
+.r-New{background:#B7A7DB}.r-Learning{background:#F2A33A}.r-Learned{background:#4FA477}
+.quote{border-left:4px solid var(--coral);padding:2px 0 2px 14px;font-family:var(--serif);font-style:italic}
+.quote .by{display:block;font-style:normal;font-family:var(--sans);font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+/* practice */
+.flash{background:repeating-linear-gradient(transparent 0 31px,rgba(90,120,170,.2) 31px 32px),var(--card);border-top:5px solid var(--coral);border-radius:10px 10px 24px 24px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;box-shadow:var(--shadow)}
 .flash .word{font-size:36px}
-.quote{border-left:3px solid var(--accent);padding:2px 0 2px 14px;font-style:italic}
-.quote .by{display:block;font-style:normal;font-family:var(--ui);font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-top:4px}
 .grade{display:flex;gap:12px}
 .grade .btn{flex:1;min-height:56px;font-size:17px}
-.back{background:none;border:0;color:var(--muted);font:800 15px var(--ui);display:flex;align-items:center;gap:6px;min-height:44px;padding:0;cursor:pointer;align-self:flex-start}
-.note{font-size:13px;color:var(--muted)}
-.err{font-size:14px;color:var(--peach-ink);background:var(--peach);border-radius:4px;padding:8px 12px}
-nav{flex:none;display:flex;justify-content:space-around;align-items:flex-end;background:var(--accent);padding:6px 8px 0}
-nav button{border:0;background:transparent;color:var(--on-accent);opacity:.8;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:92px;min-height:58px;border-radius:6px 6px 0 0;font:700 12px var(--ui);cursor:pointer;letter-spacing:.4px}
-nav button[aria-current="page"]{background:var(--card);color:var(--accent);opacity:1;font-weight:800}
-#toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:4px;font:700 14px var(--ui);opacity:0;pointer-events:none;transition:opacity .2s}
+.btn.again{background:var(--peach);color:var(--peach-ink);box-shadow:none}
+.btn.got{background:var(--mint);color:var(--mint-ink);box-shadow:none}
+.cheer{text-align:center;align-items:center}
+.cheer .big{font-size:56px;line-height:1}
+/* nav */
+nav{flex:none;margin:0 12px 12px;display:flex;justify-content:space-around;align-items:center;background:var(--card);border-radius:28px;padding:6px;box-shadow:0 8px 24px rgba(60,40,30,.22)}
+nav button{position:relative;border:0;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-height:56px;border-radius:22px;font:800 11px var(--sans);cursor:pointer}
+nav button[aria-current="page"]{background:var(--lilac);color:var(--lilac-ink)}
+nav .fab{background:var(--grad);color:var(--on-grad);flex:none;width:64px;min-height:56px;box-shadow:0 4px 12px rgba(111,88,181,.4)}
+nav .dot{position:absolute;top:4px;right:calc(50% - 22px);min-width:18px;height:18px;border-radius:9px;background:var(--coral);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px}
+#toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 18px;border-radius:18px;font-weight:800;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
@@ -100,49 +135,73 @@ nav button[aria-current="page"]{background:var(--card);color:var(--accent);opaci
 <div id="toast" role="status"></div>
 <script>
 (function(){
-var LS='mywords.v1';
-var DAY=864e5, GAPS=[0,1,2,4,8,16];
-var S={tab:'add',words:[],t:0,open:null,q:'',filter:'All',confirmDel:false,
-  add:{word:'',sentence:'',book:'',res:null,busy:false,err:''},bookF:'All books',
-  pr:{queue:[],i:0,shown:false,total:0,sentence:'',fb:null,busy:false,finished:false,started:false},
-  fbDetail:null,busyDetail:false,storage:'device'};
-var sample=null,tts=null,ref=null,saveTimer=null,toastTimer=null;
+var LS='mywords.v1',DAY=864e5,GAPS=[0,1,2,4,8,16],GOAL=5;
+var DEMO=/[?&]demo=1/.test(location.search);
+var COVERS=['#3F6FA8','#C94A4A','#3E9C8C','#8A5FB8','#D98A2B','#4D8F5B','#B8587F','#5B6FB5'];
+var S={tab:'home',words:[],t:0,open:null,q:'',filter:'All',bookF:'All books',confirmDel:false,
+  meta:{streak:0,last:'',best:0,day:{date:'',count:0}},
+  add:{word:'',sentence:'',book:'',res:null,busy:false,err:''},
+  pr:{queue:[],i:0,shown:false,total:0,sentence:'',finished:false,started:false,good:0}};
+var saveTimer=null,toastTimer=null;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function $(s){return document.querySelector(s);}
 function status(w){return w.box>=4?'Learned':(w.reviews>0||w.box>0?'Learning':'New');}
 function byId(id){for(var i=0;i<S.words.length;i++){if(S.words[i].id===id)return S.words[i];}return null;}
-function canSpeak(){return true;}
 function toast(m){var t=$('#toast');t.textContent=m;t.className='on';clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='';},1800);}
+function dayKey(d){return d.toLocaleDateString('en-CA');}
+function todayKey(){return dayKey(new Date());}
+function yesterdayKey(){return dayKey(new Date(Date.now()-DAY));}
+function streakNow(){var m=S.meta;return (m.last===todayKey()||m.last===yesterdayKey())?m.streak:0;}
+function doneToday(){return S.meta.day.date===todayKey()?S.meta.day.count:0;}
+function activity(n){
+  var m=S.meta,t=todayKey();
+  if(m.day.date!==t)m.day={date:t,count:0};
+  m.day.count+=n||0;
+  if(m.last!==t){m.streak=(m.last===yesterdayKey())?m.streak+1:1;m.last=t;m.best=Math.max(m.best||0,m.streak);}
+}
+function dueCount(){var n=Date.now();return S.words.filter(function(w){return w.due<=n;}).length;}
+function hashStr(s){var h=0;for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}return Math.abs(h);}
+function colorFor(title){return title?COVERS[hashStr(title)%COVERS.length]:'#8F8499';}
 
 /* ---------- storage ---------- */
-function loadLocal(){try{S.add.book=localStorage.getItem('mywords.book')||'';}catch(e){}try{var d=JSON.parse(localStorage.getItem(LS)||'null');if(d&&d.items){S.words=d.items;S.t=d.t||0;}}catch(e){}}
-function save(){
-  S.t=Date.now();
-  try{localStorage.setItem(LS,JSON.stringify({items:S.words,t:S.t}));}catch(e){}
-  clearTimeout(saveTimer);
-  saveTimer=setTimeout(function(){
-    if(!ref)return;
-    try{var p=ref.set({items:S.words,t:S.t});if(p&&p.catch)p.catch(function(){});}catch(e){}
-  },600);
+function loadLocal(){
+  try{S.add.book=localStorage.getItem('mywords.book')||'';}catch(e){}
+  try{var d=JSON.parse(localStorage.getItem(LS)||'null');if(d&&d.items){S.words=d.items;S.t=d.t||0;if(d.meta)S.meta=d.meta;}}catch(e){}
 }
-function connect(){}
+function save(){
+  if(DEMO)return;
+  S.t=Date.now();clearTimeout(saveTimer);
+  saveTimer=setTimeout(function(){try{localStorage.setItem(LS,JSON.stringify({items:S.words,t:S.t,meta:S.meta}));}catch(e){}},200);
+}
+function demoData(){
+  var n=Date.now();
+  function w(i,word,pos,ipa,meaning,ex,book,box,rev,dueD){return {id:'d'+i,word:word,pos:pos,ipa:ipa,say:'',audio:'',meaning:meaning,example:ex,tip:'',book:'',bookTitle:book,mine:'',added:n-i*3600e3,box:box,reviews:rev,due:n+dueD*DAY};}
+  S.words=[
+   w(1,'ephemeral','adjective','/ɪˈfɛm.ər.əl/','Lasting for a very short time.','The ephemeral beauty of cherry blossoms.','Pride and Prejudice',1,1,0),
+   w(2,'ubiquitous','adjective','/juːˈbɪk.wɪ.təs/','Seen or found everywhere.','Phones are ubiquitous now.','Moby-Dick',0,0,0),
+   w(3,'laconic','adjective','/ləˈkɒn.ɪk/','Using very few words.','','Moby-Dick',4,3,5),
+   w(4,'petrichor','noun','/ˈpɛt.rɪ.kɔːr/','The smell of rain on dry earth.','','Pride and Prejudice',0,0,0),
+   w(5,'equanimity','noun','/ˌiː.kwəˈnɪm.ɪ.ti/','Calm mind in hard moments.','','Dracula',2,2,0),
+   w(6,'lucid','adjective','/ˈluː.sɪd/','Clear and easy to understand.','','Dracula',5,4,9),
+   w(7,'sonorous','adjective','/ˈsɒn.ər.əs/','Having a deep, full sound.','','Dracula',0,0,0)
+  ];
+  S.meta={streak:4,last:todayKey(),best:6,day:{date:todayKey(),count:3}};
+}
 
 /* ---------- speech ---------- */
 function speak(text){
   var audio='';
   if(S.add.res&&S.add.res.word===text)audio=S.add.res.audio;
   S.words.forEach(function(w){if(w.word===text&&w.audio)audio=w.audio;});
-  try{
-    if(audio){var au=new Audio(audio);au.play().catch(function(){fallback();});return;}
-  }catch(e){}
-  fallback();
-  function fallback(){try{if('speechSynthesis' in window){var u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}}catch(e){}}
+  try{if(audio){var au=new Audio(audio);au.play().catch(function(){fb();});return;}}catch(e){}
+  fb();
+  function fb(){try{if('speechSynthesis' in window){var u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}}catch(e){}}
 }
 var SPK='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
-function spk(w){return canSpeak()?'<button class="speak" data-act="speak" data-w="'+esc(w)+'" aria-label="Hear '+esc(w)+'">'+SPK+'</button>':'';}
+function spk(w){return '<button class="speak" data-act="speak" data-w="'+esc(w)+'" aria-label="Hear '+esc(w)+'">'+SPK+'</button>';}
 
-/* ---------- Claude ---------- */
+/* ---------- dictionary ---------- */
 function plain(html){var d=new DOMParser().parseFromString(String(html||''),'text/html');return (d.body.textContent||'').replace(/\s+/g,' ').trim();}
 async function fromDictApi(w){
   var resp=await fetch('https://api.dictionaryapi.dev/v2/entries/en/'+encodeURIComponent(w));
@@ -169,50 +228,66 @@ async function lookup(){
   if(!w){a.err='Type a word first.';render();return;}
   var dup=null;for(var i=0;i<S.words.length;i++){if(S.words[i].word.toLowerCase()===w.toLowerCase())dup=S.words[i];}
   if(dup){S.open=dup.id;S.tab='words';toast('Already saved');render();return;}
-  a.err='';a.res=null;
-  a.busy=true;render();
-  try{
-    var r1=null;
-    try{r1=await fromDictApi(w);}catch(e1){r1=await fromWikt(w);}
-    a.res=r1;
-  }catch(err){
-    a.res={word:w,pos:'',ipa:'',say:'',audio:'',meaning:'',example:'',tip:'',manual:true};
-    a.err=(navigator.onLine===false?'You are offline. ':'Word not found. ')+'You can type the meaning yourself.';
-  }
+  a.err='';a.res=null;a.busy=true;render();
+  try{var r1=null;try{r1=await fromDictApi(w);}catch(e1){r1=await fromWikt(w);}a.res=r1;}
+  catch(err){a.res={word:w,pos:'',ipa:'',say:'',audio:'',meaning:'',example:'',tip:'',manual:true};a.err=(navigator.onLine===false?'You are offline. ':'Word not found. ')+'You can type the meaning yourself.';}
   a.busy=false;render();
 }
-function checkSentence(w,text,where){
-  if(!text.trim()){toast('Write a sentence first');return;}
-  w.mine=text.trim();save();toast('Sentence saved');
+
+/* ---------- pieces ---------- */
+function bookTitles(){var seen={},out=[];S.words.forEach(function(w){var b=(w.bookTitle||'').trim();if(b&&!seen[b]){seen[b]=1;out.push(b);}});return out;}
+function bookCount(t){return S.words.filter(function(w){return (w.bookTitle||'')===t;}).length;}
+function booksData(){var h='<datalist id="booklist">';bookTitles().forEach(function(b){h+='<option value="'+esc(b)+'">';});return h+'</datalist>';}
+function coverHtml(t){return '<span class="cover" style="--c:'+colorFor(t)+'"><i></i><b>'+esc(t)+'</b></span>';}
+function miniBook(c){return '<svg width="34" height="40" viewBox="0 0 34 40" aria-hidden="true"><rect x="3" y="2" width="28" height="34" rx="3" fill="'+c+'"/><rect x="3" y="2" width="6" height="34" rx="2" fill="rgba(0,0,0,.2)"/><rect x="14" y="10" width="12" height="3" rx="1.5" fill="rgba(255,255,255,.75)"/><rect x="14" y="16" width="9" height="3" rx="1.5" fill="rgba(255,255,255,.55)"/><path d="M22 36v-9l3 3 3-3v9z" fill="#F2A33A"/></svg>';}
+function stackSvg(n){
+  var cols=['#3F6FA8','#C94A4A','#8A5FB8','#3E9C8C','#D98A2B','#B8587F'],ws=[104,92,100,88,96,84],h='',y=132,i;
+  for(i=0;i<n;i++){var w=ws[i%ws.length],x=(120-w)/2+(i%2?4:-4);
+    h+='<rect x="'+x+'" y="'+(y-22)+'" width="'+w+'" height="21" rx="4" fill="'+cols[i%cols.length]+'"/><rect x="'+(x+8)+'" y="'+(y-14)+'" width="'+(w*.4)+'" height="5" rx="2.5" fill="rgba(255,255,255,.55)"/><path d="M'+(x+w-26)+' '+(y-22)+'v-0h9v28l-4.5-5-4.5 5z" fill="#F2A33A" opacity=".95"/>';
+    y-=23;}
+  return '<svg width="120" height="140" viewBox="0 0 120 140" aria-hidden="true" style="flex:none">'+h+'<ellipse cx="60" cy="135" rx="52" ry="4" fill="rgba(0,0,0,.12)"/></svg>';
 }
+var ICO={
+  home:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>',
+  words:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6"/></svg>',
+  add:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  practice:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="3"/><path d="M9 12h6"/></svg>',
+  flame:'<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4-3 5-3 9 0 1.5.8 2.6 2 3-.5-2 1-3 2-4 .5 2 3 3 3 6a5 5 0 0 1-10 0c0-6 6-7 6-14z" fill="#F2A33A"/><path d="M12 22a3 3 0 0 1-3-3c0-2 2-2.5 3-4 1 1.5 3 2 3 4a3 3 0 0 1-3 3z" fill="#C94A32"/></svg>'
+};
 
 /* ---------- views ---------- */
-function fbHtml(fb){
-  if(!fb)return '';
-  var c=fb.ok===true?'mint':(fb.ok===false?'peach':'sky');
-  return '<div class="card '+c+'" style="padding:12px 14px;gap:4px"><span style="font-weight:700">'+esc(fb.comment)+'</span>'+(fb.better?'<span class="note" style="color:inherit">Try: '+esc(fb.better)+'</span>':'')+'</div>';
+function vHome(){
+  var total=S.words.length,learned=S.words.filter(function(w){return status(w)==='Learned';}).length,due=dueCount(),st=streakNow(),done=doneToday();
+  var hr=new Date().getHours(),greet=hr<12?'Good morning':(hr<18?'Good afternoon':'Good evening');
+  var pct=Math.min(1,done/GOAL),C=2*Math.PI*26;
+  var h='<div class="row between"><div><div class="hello">'+greet+', reader</div><h1>Your word shelf</h1></div><div class="streak" title="Days in a row">'+ICO.flame+'<span>'+st+'</span></div></div>';
+  h+='<div class="hero"><div class="row"><div class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="#6F58B5" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+(C*pct)+' '+C+'" transform="rotate(-90 32 32)"/></svg><b>'+Math.min(done,GOAL)+'/'+GOAL+'</b></div>'+
+    '<div style="flex:1"><h2>'+(done>=GOAL?'Goal reached today':'Today\'s reading goal')+'</h2><p class="sub" style="color:var(--ink);opacity:.8">'+(total?(due?due+' word'+(due>1?'s':'')+' waiting for you':'You are all caught up'):'Add the first word you meet in your book')+'</p></div></div>'+
+    '<button class="btn" data-act="'+(total?'gopractice':'goadd')+'">'+(total?'Practice now':'Add a word')+'</button></div>';
+  h+='<div class="cats">'+[['All','#6F58B5',total],['New','#B7A7DB',S.words.filter(function(w){return status(w)==='New';}).length],['Learning','#F2A33A',S.words.filter(function(w){return status(w)==='Learning';}).length],['Learned','#4FA477',learned]].map(function(c){return '<button class="cat" data-act="cat" data-f="'+c[0]+'">'+miniBook(c[1])+c[0]+'<span>'+c[2]+'</span></button>';}).join('')+'</div>';
+  h+='<div class="row between"><h2>Your books</h2><button class="back" data-act="gowords" style="min-height:32px">View all</button></div><div class="shelf">';
+  bookTitles().forEach(function(t){h+='<button class="book" data-act="book" data-b="'+esc(t)+'">'+coverHtml(t)+'<span class="bt">'+esc(t)+'</span><span class="bn">'+bookCount(t)+' word'+(bookCount(t)>1?'s':'')+'</span></button>';});
+  h+='<button class="book" data-act="goadd"><span class="cover add"><i style="border-color:var(--accent)"></i><b style="color:var(--accent);text-shadow:none">Add a word</b></span><span class="bt">New book</span><span class="bn">&nbsp;</span></button></div>';
+  var next=[5,10,25,50,100,250,500,1000].filter(function(m){return m>learned;})[0]||1000,stackN=Math.max(1,Math.min(6,1+Math.floor(total/4)));
+  h+='<div class="card tint-sky"><div class="stack">'+stackSvg(stackN)+'<div style="flex:1;display:flex;flex-direction:column;gap:8px"><h2>'+learned+' word'+(learned===1?'':'s')+' learned</h2><div class="bar"><div style="width:'+Math.round(learned/next*100)+'%"></div></div><span class="note" style="color:var(--sky-ink)">Next goal: '+next+' words learned. Your stack grows as you add words.</span><span class="note" style="color:var(--sky-ink)">Best streak: '+((S.meta.best||0))+' days</span></div></div></div>';
+  var cand=S.words.filter(function(w){return status(w)!=='Learned';});if(!cand.length)cand=S.words;
+  if(cand.length){var wd=cand[Math.floor(Date.now()/DAY)%cand.length];
+    h+='<div class="card tint-peach wod"><div class="cap" style="color:var(--peach-ink)">Word of the day</div><div class="row between"><div><div class="word">'+esc(wd.word)+'</div><div class="pos">'+esc(wd.pos)+' '+esc(wd.ipa)+'</div></div>'+spk(wd.word)+'</div><div style="font-weight:700">'+esc(wd.meaning)+'</div><button class="btn soft" data-act="open" data-id="'+wd.id+'">Open this word</button></div>';}
+  return h;
 }
-function bookTitles(){var seen={},out=[];S.words.forEach(function(w){var b=(w.bookTitle||'').trim();if(b&&!seen[b]){seen[b]=1;out.push(b);}});return out;}
-function booksData(){var h='<datalist id="booklist">';bookTitles().forEach(function(b){h+='<option value="'+esc(b)+'">';});return h+'</datalist>';}
 function vAdd(){
   var a=S.add,r=a.res,h='';
   h+='<div><h1>New word</h1><p class="sub">Write down a word you met while reading.</p></div>';
-  h+='<div class="card lilac"><label for="ab">Book you are reading</label><input id="ab" data-in="ab" value="'+esc(a.book)+'" list="booklist" placeholder="Title of the book" autocomplete="off">'+booksData()+'<label for="aw">Word</label><input id="aw" data-in="aw" value="'+esc(a.word)+'" autocomplete="off" autocapitalize="none" spellcheck="false">'+
+  h+='<div class="card tint-lilac"><label for="ab">Book you are reading</label><input id="ab" data-in="ab" value="'+esc(a.book)+'" list="booklist" placeholder="Title of the book" autocomplete="off">'+booksData()+
+     '<label for="aw">Word</label><input id="aw" data-in="aw" value="'+esc(a.word)+'" autocomplete="off" autocapitalize="none" spellcheck="false">'+
      '<label for="as">Sentence from the book (optional)</label><textarea id="as" data-in="as" rows="2">'+esc(a.sentence)+'</textarea>'+
      '<button class="btn" data-act="lookup"'+(a.busy?' disabled':'')+'>'+(a.busy?'Checking…':'Check meaning')+'</button></div>';
   if(a.err)h+='<div class="err">'+esc(a.err)+'</div>';
   if(r){
-    h+='<div class="card mint"><div class="row between"><div><div class="word">'+esc(r.word)+'</div><div class="pos">'+esc(r.pos)+'</div></div>'+spk(r.word)+'</div>';
-    if(r.manual){
-      h+='<label for="ri">Say it like (optional)</label><input id="ri" data-in="rs" value="'+esc(r.say)+'" placeholder="ih-FEM-er-ul">'+
-         '<label for="rm">Meaning</label><textarea id="rm" data-in="rm" rows="2">'+esc(r.meaning)+'</textarea>';
-    }else{
-      h+='<div class="chips">'+(r.ipa?'<span class="pill">'+esc(r.ipa)+'</span>':'')+(r.say?'<span class="pill">'+esc(r.say)+'</span>':'')+'</div>'+
-         '<p style="margin:0;font-size:17px;font-weight:700">'+esc(r.meaning)+'</p>'+
-         (r.example?'<p style="margin:0">'+esc(r.example)+'</p>':'')+
-         (r.tip?'<p style="margin:0;font-weight:700;color:var(--mint-ink)">Memory tip: '+esc(r.tip)+'</p>':'');
-    }
-    h+='<button class="btn mintbtn" data-act="saveword">Save to My Words</button></div>';
+    h+='<div class="card tint-mint"><div class="row between"><div><div class="word">'+esc(r.word)+'</div><div class="pos">'+esc(r.pos)+'</div></div>'+spk(r.word)+'</div>';
+    if(r.manual){h+='<label for="rm">Meaning</label><textarea id="rm" data-in="rm" rows="2">'+esc(r.meaning)+'</textarea>';}
+    else{h+='<div class="chips">'+(r.ipa?'<span class="pill">'+esc(r.ipa)+'</span>':'')+'</div><p style="margin:0;font-size:17px;font-weight:800">'+esc(r.meaning)+'</p>'+(r.example?'<p style="margin:0;font-family:var(--serif);font-style:italic">'+esc(r.example)+'</p>':'');}
+    h+='<button class="btn" data-act="saveword">Save to My Words</button></div>';
   }
   return h;
 }
@@ -221,76 +296,66 @@ function listHtml(){
   var arr=S.words.slice().sort(function(a,b){return b.added-a.added;}).filter(function(w){
     return (S.filter==='All'||status(w)===S.filter)&&(S.bookF==='All books'||(w.bookTitle||'')===S.bookF)&&(!q||w.word.toLowerCase().indexOf(q)>-1||w.meaning.toLowerCase().indexOf(q)>-1);
   });
-  if(!arr.length)return '<div class="plain note">'+(S.words.length?'No words match.':'No words yet. Add the first word you do not know.')+'</div>';
+  if(!arr.length)return '<div class="card note">'+(S.words.length?'No words match.':'No words yet. Add the first word you do not know.')+'</div>';
   arr.forEach(function(w){
     var st=status(w);
-    out+='<button class="plain item" data-act="open" data-id="'+w.id+'"><span class="rib r-'+st+'" title="'+st+'" aria-hidden="true"></span><span style="flex:1;min-width:0"><span class="w">'+esc(w.word)+'</span><span class="s">'+esc(w.ipa||w.say)+'</span><br><span class="m">'+esc(w.meaning)+'</span>'+(w.bookTitle?'<br><span class="bk">'+esc(w.bookTitle)+'</span>':'')+'<span style="position:absolute;left:-9999px">'+st+'</span></span></button>';
+    out+='<button class="item" style="--c:'+colorFor(w.bookTitle)+'" data-act="open" data-id="'+w.id+'"><span class="rib r-'+st+'" aria-hidden="true"></span><span style="flex:1;min-width:0"><span class="w">'+esc(w.word)+'</span><span class="s">'+esc(w.ipa||'')+'</span><br><span class="m">'+esc(w.meaning)+'</span>'+(w.bookTitle?'<br><span class="bk">'+esc(w.bookTitle)+'</span>':'')+'<span style="position:absolute;left:-9999px">'+st+'</span></span></button>';
   });
   return out;
 }
 function vWords(){
   var h='<div class="row between"><h1>My words</h1><span class="sub">'+S.words.length+' saved</span></div>'+
-   '<label for="q" class="cap" style="position:absolute;left:-9999px">Search words</label><input id="q" data-in="q" placeholder="Search a word" value="'+esc(S.q)+'" >'+
-   (bookTitles().length?'<label for="bk" style="position:absolute;left:-9999px">Filter by book</label><select id="bk" data-in="bk"><option>All books</option>'+bookTitles().map(function(b){return '<option'+(S.bookF===b?' selected':'')+'>'+esc(b)+'</option>';}).join('')+'</select>':'')+'<div class="chips">';
+   '<label for="q" style="position:absolute;left:-9999px">Search words</label><input id="q" data-in="q" placeholder="Search a word" value="'+esc(S.q)+'">'+
+   (bookTitles().length?'<label for="bk" style="position:absolute;left:-9999px">Filter by book</label><select id="bk" data-in="bk"><option>All books</option>'+bookTitles().map(function(b){return '<option'+(S.bookF===b?' selected':'')+'>'+esc(b)+'</option>';}).join('')+'</select>':'')+
+   '<div class="chips">';
   ['All','New','Learning','Learned'].forEach(function(f){h+='<button class="chip" data-act="filter" data-f="'+f+'" aria-pressed="'+(S.filter===f)+'">'+f+'</button>';});
-  h+='</div><div id="list" style="display:flex;flex-direction:column;gap:10px">'+listHtml()+'</div>';
-  if(S.words.length)h+='<p class="note">Saved on this device.</p>';
-  return h;
+  return h+'</div><div id="list" style="display:flex;flex-direction:column;gap:12px">'+listHtml()+'</div>';
 }
 function vDetail(w){
   var st=status(w),h='<button class="back" data-act="back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>My words</button>';
-  h+='<div class="card mint"><div class="row between"><div><div class="word">'+esc(w.word)+'</div><div class="pos">'+esc(w.pos)+'</div></div>'+spk(w.word)+'</div>'+
-     '<div class="chips">'+(w.ipa?'<span class="pill">'+esc(w.ipa)+'</span>':'')+(w.say?'<span class="pill">'+esc(w.say)+'</span>':'')+'<span class="tag t-'+st+'" style="align-self:center">'+st+'</span></div>'+
-     '<p style="margin:0;font-size:17px;font-weight:700">'+esc(w.meaning)+'</p>'+(w.example?'<p style="margin:0">'+esc(w.example)+'</p>':'')+'</div>';
-  if(w.book||w.bookTitle)h+='<div class="plain"><div class="cap" style="margin-bottom:6px">In your book</div><div class="quote">'+(w.book?esc(w.book):'')+(w.bookTitle?'<span class="by">'+esc(w.bookTitle)+'</span>':'')+'</div></div>';
-  if(w.tip)h+='<div class="card peach" style="gap:4px"><div class="cap" style="color:var(--peach-ink)">MEMORY TIP</div>'+esc(w.tip)+'</div>';
-  h+='<div class="card lilac"><label for="ms" style="color:var(--lilac-ink)">MY OWN SENTENCE</label><textarea id="ms" data-in="ms" rows="2" placeholder="Write a sentence using this word">'+esc(w.mine||'')+'</textarea>'+
-     '<button class="btn" data-act="checkd"'+(S.busyDetail?' disabled':'')+'>'+(S.busyDetail?'Saving…':'Save my sentence')+'</button>'+fbHtml(S.fbDetail)+'</div>';
-  h+=S.confirmDel?'<div class="row"><button class="btn ghost" data-act="delno" style="flex:1">Keep it</button><button class="btn" data-act="delyes" style="flex:1;background:var(--peach);color:var(--peach-ink)">Delete word</button></div>'
-                 :'<button class="btn ghost" data-act="del">Delete this word</button>';
+  h+='<div class="card tint-mint"><div class="row between"><div><div class="word">'+esc(w.word)+'</div><div class="pos">'+esc(w.pos)+'</div></div>'+spk(w.word)+'</div>'+
+     '<div class="chips">'+(w.ipa?'<span class="pill">'+esc(w.ipa)+'</span>':'')+'<span class="tag t-'+st+'" style="align-self:center">'+st+'</span></div>'+
+     '<p style="margin:0;font-size:17px;font-weight:800">'+esc(w.meaning)+'</p>'+(w.example?'<p style="margin:0;font-family:var(--serif);font-style:italic">'+esc(w.example)+'</p>':'')+'</div>';
+  if(w.book||w.bookTitle)h+='<div class="card"><div class="cap">In your book</div><div class="quote">'+(w.book?esc(w.book):'')+(w.bookTitle?'<span class="by">'+esc(w.bookTitle)+'</span>':'')+'</div></div>';
+  h+='<div class="card tint-lilac"><label for="ms">My own sentence</label><textarea id="ms" data-in="ms" rows="2" placeholder="Write a sentence using this word">'+esc(w.mine||'')+'</textarea><button class="btn" data-act="savemine">Save my sentence</button></div>';
+  h+=S.confirmDel?'<div class="row"><button class="btn ghost" data-act="delno" style="flex:1">Keep it</button><button class="btn again" data-act="delyes" style="flex:1">Delete word</button></div>':'<button class="btn ghost" data-act="del">Delete this word</button>';
   return h;
 }
 function startPractice(all){
   var now=Date.now(),q=S.words.filter(function(w){return all||w.due<=now;}).sort(function(a,b){return a.due-b.due;}).slice(0,10);
-  S.pr={queue:q.map(function(w){return w.id;}),i:0,shown:false,total:q.length,sentence:'',fb:null,busy:false,finished:!q.length,started:true};
+  S.pr={queue:q.map(function(w){return w.id;}),i:0,shown:false,total:q.length,sentence:'',finished:!q.length,started:true,good:0};
 }
 function vPractice(){
   var p=S.pr,h='';
-  if(!S.words.length)return '<h1>Practice</h1><div class="plain note">Save a few words first, then practice them here.</div><button class="btn" data-act="goadd">Add a word</button>';
+  if(!S.words.length)return '<h1>Practice</h1><div class="card note">Save a few words first, then practice them here.</div><button class="btn" data-act="goadd">Add a word</button>';
   if(!p.started)startPractice(false);
   if(p.finished||p.i>=p.queue.length){
-    var due=S.words.filter(function(w){return w.due<=Date.now();}).length;
-    h+='<h1>Practice</h1><div class="card mint"><div class="word">'+(p.total?'Well done':'All caught up')+'</div><p style="margin:0">'+(p.total?'You went through '+p.total+' word'+(p.total>1?'s':'')+'. Words you missed will come back soon.':'No words are due right now. Come back later, or practice everything again.')+'</p></div>';
+    var due=dueCount();
+    h+='<h1>Practice</h1><div class="card tint-mint cheer"><div class="big">'+(p.total?'🎉':'📚')+'</div><h2>'+(p.total?'Well done!':'All caught up')+'</h2><p style="margin:0">'+(p.total?'You practiced '+p.total+' word'+(p.total>1?'s':'')+', and '+p.good+' felt easy. Come back tomorrow to keep your '+streakNow()+'-day streak.':'No words are due right now. Come back later, or practice everything again.')+'</p></div>';
     h+='<button class="btn" data-act="prall">Practice all words again</button>';
-    if(due)h+='<button class="btn ghost" data-act="prdue">Practice due words</button>';
+    if(due)h+='<button class="btn soft" data-act="prdue">Practice due words</button>';
     return h;
   }
   var w=byId(p.queue[p.i]);
   if(!w){p.i++;return vPractice();}
   h+='<div class="row between"><h1>Practice</h1><span class="sub">'+(p.i+1)+' of '+p.queue.length+'</span></div><div class="bar"><div style="width:'+Math.round(p.i/p.queue.length*100)+'%"></div></div>';
-  h+='<div class="flash"><div class="word">'+esc(w.word)+'</div>'+(w.say?'<div style="font-weight:700;color:var(--sky-ink)">'+esc(w.say)+'</div>':'')+spk(w.word);
-  if(p.shown)h+='<div style="width:100%;height:1px;background:var(--line)"></div><div style="font-size:19px;font-weight:700">'+esc(w.meaning)+'</div>'+(w.example?'<div>'+esc(w.example)+'</div>':'');
+  h+='<div class="flash"><div class="word">'+esc(w.word)+'</div>'+(w.ipa?'<div class="pos">'+esc(w.ipa)+'</div>':'')+spk(w.word)+(w.bookTitle?'<div class="cap" style="color:var(--coral)">'+esc(w.bookTitle)+'</div>':'');
+  if(p.shown)h+='<div style="width:100%;height:1px;background:var(--line)"></div><div style="font-size:19px;font-weight:800">'+esc(w.meaning)+'</div>'+(w.example?'<div style="font-family:var(--serif);font-style:italic">'+esc(w.example)+'</div>':'');
   h+='</div>';
-  if(!p.shown){h+='<button class="btn" data-act="show" style="min-height:56px">Show meaning</button>';}
-  else{
-    h+='<div class="grade"><button class="btn" data-act="again" style="background:var(--peach);color:var(--peach-ink)">Again</button><button class="btn" data-act="got" style="background:var(--mint);color:var(--mint-ink)">Got it</button></div>';
-    h+='<div class="card lilac"><label for="ps" style="color:var(--lilac-ink)">USE IT: write one sentence</label><textarea id="ps" data-in="ps" rows="2">'+esc(p.sentence)+'</textarea><button class="btn" data-act="checkp"'+(p.busy?' disabled':'')+'>'+(p.busy?'Saving…':'Save my sentence')+'</button>'+fbHtml(p.fb)+'</div>';
-  }
+  if(!p.shown)h+='<button class="btn" data-act="show" style="min-height:56px">Show meaning</button>';
+  else h+='<div class="grade"><button class="btn again" data-act="again">Again</button><button class="btn got" data-act="got">Got it</button></div>';
   return h;
 }
-var ICO={
-  add:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
-  words:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6"/></svg>',
-  practice:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="3"/><path d="M9 12h6"/></svg>'
-};
 function render(){
   var v=$('#view'),h;
-  if(S.tab==='add')h=vAdd();
+  if(S.tab==='home')h=vHome();
+  else if(S.tab==='add')h=vAdd();
   else if(S.tab==='words'){var w=S.open?byId(S.open):null;h=w?vDetail(w):vWords();}
   else h=vPractice();
   v.innerHTML=h;
-  var tabs=[['add','Add'],['words','My words'],['practice','Practice']],n='';
-  tabs.forEach(function(t){n+='<button data-act="tab" data-t="'+t[0]+'"'+(S.tab===t[0]?' aria-current="page"':'')+'>'+ICO[t[0]]+t[1]+'</button>';});
+  var due=dueCount(),tabs=[['home','Home'],['words','My words'],['add','Add'],['practice','Practice']],n='';
+  tabs.forEach(function(t){var cur=S.tab===t[0]?' aria-current="page"':'';
+    n+='<button'+(t[0]==='add'?' class="fab" aria-label="Add a word"':'')+' data-act="tab" data-t="'+t[0]+'"'+cur+'>'+ICO[t[0]]+(t[0]==='add'?'':t[1])+(t[0]==='practice'&&due?'<span class="dot">'+due+'</span>':'')+'</button>';});
   $('#nav').innerHTML=n;
 }
 
@@ -301,17 +366,15 @@ document.addEventListener('input',function(e){
   if(k==='aw')S.add.word=v;
   else if(k==='as')S.add.sentence=v;
   else if(k==='ab')S.add.book=v;
-  else if(k==='bk'){S.bookF=v;$('#list').innerHTML=listHtml();}
-  else if(k==='rs'&&S.add.res)S.add.res.say=v;
   else if(k==='rm'&&S.add.res)S.add.res.meaning=v;
   else if(k==='q'){S.q=v;$('#list').innerHTML=listHtml();}
+  else if(k==='bk'){S.bookF=v;$('#list').innerHTML=listHtml();}
   else if(k==='ms'){var w=byId(S.open);if(w){w.mine=v;save();}}
-  else if(k==='ps')S.pr.sentence=v;
 });
 document.addEventListener('click',function(e){
   var b=e.target.closest&&e.target.closest('[data-act]');if(!b)return;
   var act=b.getAttribute('data-act'),p=S.pr;
-  if(act==='tab'){S.tab=b.getAttribute('data-t');S.open=null;S.confirmDel=false;S.fbDetail=null;if(S.tab==='practice'&&(p.finished||p.i>=p.queue.length))p.started=false;render();}
+  if(act==='tab'){S.tab=b.getAttribute('data-t');S.open=null;S.confirmDel=false;if(S.tab==='practice'&&(p.finished||p.i>=p.queue.length))p.started=false;if(S.tab==='words'){S.filter='All';S.bookF='All books';S.q='';}render();$('#view').scrollTop=0;}
   else if(act==='speak')speak(b.getAttribute('data-w'));
   else if(act==='lookup')lookup();
   else if(act==='saveword'){
@@ -319,34 +382,40 @@ document.addEventListener('click',function(e){
     if(!r.meaning.trim()){S.add.err='Add the meaning first.';render();return;}
     var now=Date.now();
     S.words.push({id:now.toString(36)+Math.random().toString(36).slice(2,5),word:r.word.trim()||S.add.word.trim(),pos:r.pos,ipa:r.ipa,say:r.say,audio:r.audio||'',meaning:r.meaning.trim(),example:r.example,tip:r.tip,book:S.add.sentence.trim(),bookTitle:S.add.book.trim(),mine:'',added:now,box:0,reviews:0,due:now});
-    try{localStorage.setItem('mywords.book',S.add.book.trim());}catch(e){}S.add={word:'',sentence:'',book:S.add.book.trim(),res:null,busy:false,err:''};save();toast('Saved');S.tab='words';render();
+    activity(0);
+    if(!DEMO){try{localStorage.setItem('mywords.book',S.add.book.trim());}catch(e2){}}
+    S.add={word:'',sentence:'',book:S.add.book.trim(),res:null,busy:false,err:''};save();toast('Saved to your shelf');S.tab='home';render();$('#view').scrollTop=0;
   }
-  else if(act==='open'){S.open=b.getAttribute('data-id');S.fbDetail=null;S.confirmDel=false;render();}
+  else if(act==='open'){S.tab='words';S.open=b.getAttribute('data-id');S.confirmDel=false;render();$('#view').scrollTop=0;}
   else if(act==='back'){S.open=null;S.confirmDel=false;render();}
   else if(act==='filter'){S.filter=b.getAttribute('data-f');render();}
+  else if(act==='cat'){S.tab='words';S.open=null;S.filter=b.getAttribute('data-f');S.bookF='All books';S.q='';render();$('#view').scrollTop=0;}
+  else if(act==='book'){S.tab='words';S.open=null;S.filter='All';S.bookF=b.getAttribute('data-b');S.q='';render();$('#view').scrollTop=0;}
+  else if(act==='gowords'){S.tab='words';S.open=null;S.filter='All';S.bookF='All books';render();$('#view').scrollTop=0;}
+  else if(act==='gopractice'){S.tab='practice';if(p.finished||p.i>=p.queue.length)p.started=false;render();$('#view').scrollTop=0;}
   else if(act==='del'){S.confirmDel=true;render();}
   else if(act==='delno'){S.confirmDel=false;render();}
   else if(act==='delyes'){S.words=S.words.filter(function(w){return w.id!==S.open;});S.open=null;S.confirmDel=false;save();toast('Deleted');render();}
-  else if(act==='checkd'){var w=byId(S.open);if(w)checkSentence(w,w.mine||'','d');}
-  else if(act==='goadd'){S.tab='add';render();}
+  else if(act==='savemine'){toast('Sentence saved');save();}
+  else if(act==='goadd'){S.tab='add';render();$('#view').scrollTop=0;}
   else if(act==='show'){p.shown=true;render();}
   else if(act==='again'||act==='got'){
     var w2=byId(p.queue[p.i]);
     if(w2){
       w2.reviews=(w2.reviews||0)+1;
-      if(act==='got'){w2.box=Math.min(5,w2.box+1);w2.due=Date.now()+GAPS[w2.box]*DAY;}
+      if(act==='got'){w2.box=Math.min(5,w2.box+1);w2.due=Date.now()+GAPS[w2.box]*DAY;p.good++;}
       else{w2.box=0;w2.due=Date.now()+60000;if(p.queue.indexOf(w2.id,p.i+1)<0)p.queue.push(w2.id);}
-      save();
+      activity(1);save();
     }
-    p.i++;p.shown=false;p.sentence='';p.fb=null;if(p.i>=p.queue.length)p.finished=true;render();
+    p.i++;p.shown=false;if(p.i>=p.queue.length)p.finished=true;render();
   }
-  else if(act==='checkp'){var w3=byId(p.queue[p.i]);if(w3)checkSentence(w3,p.sentence,'pr');}
   else if(act==='prall'){startPractice(true);render();}
   else if(act==='prdue'){startPractice(false);render();}
 });
 
-loadLocal();render();
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+if(DEMO)demoData();else loadLocal();
+render();
+if('serviceWorker' in navigator&&!DEMO){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 })();
 </script>
 </body>
