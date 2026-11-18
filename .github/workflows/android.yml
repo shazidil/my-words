@@ -27,12 +27,26 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/cap/www"
           cp index.html manifest.webmanifest sw.js icon-192.png icon-512.png icon-180.png "$RUNNER_TEMP/cap/www/"
+          cp icon-512.png icon-foreground.png "$RUNNER_TEMP/"
           cd "$RUNNER_TEMP/cap"
           npm init -y
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
           npx cap init "My Words" com.shazidil.mywords --web-dir=www
           npx cap add android
           npx cap sync android
+          pip install pillow --break-system-packages || pip install pillow
+          python3 - <<'PY'
+          import os,glob
+          from PIL import Image
+          t=os.environ['RUNNER_TEMP'];res=os.path.join(t,'cap/android/app/src/main/res')
+          full=Image.open(os.path.join(t,'icon-512.png')).convert('RGBA');fg=Image.open(os.path.join(t,'icon-foreground.png')).convert('RGBA')
+          for d,(l,f) in {'mdpi':(48,108),'hdpi':(72,162),'xhdpi':(96,216),'xxhdpi':(144,324),'xxxhdpi':(192,432)}.items():
+              m=os.path.join(res,'mipmap-'+d)
+              if not os.path.isdir(m): continue
+              full.resize((l,l),Image.LANCZOS).save(os.path.join(m,'ic_launcher.png'));full.resize((l,l),Image.LANCZOS).save(os.path.join(m,'ic_launcher_round.png'));fg.resize((f,f),Image.LANCZOS).save(os.path.join(m,'ic_launcher_foreground.png'))
+          os.makedirs(os.path.join(res,'values'),exist_ok=True)
+          open(os.path.join(res,'values','ic_launcher_background.xml'),'w').write('<?xml version="1.0" encoding="utf-8"?><resources><color name="ic_launcher_background">#C9A2E4</color></resources>')
+          PY
       - name: Build debug APK
         run: |
           cd "$RUNNER_TEMP/cap/android"
