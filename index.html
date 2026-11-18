@@ -257,7 +257,7 @@ var DEMO=/[?&]demo=1/.test(location.search);
 var COVERS=['#3F6FA8','#C94A4A','#3E9C8C','#8A5FB8','#D98A2B','#4D8F5B','#B8587F','#5B6FB5'];
 var S={tab:'home',words:[],t:0,open:null,q:'',filter:'All',bookF:'All books',confirmDel:false,
   meta:{streak:0,last:'',best:0,day:{date:'',count:0}},covers:{},settings:{name:'',goal:5,session:10,text:'normal',onboarded:false},stage:'app',ob:1,confirmReset:false,deferred:null,
-  add:{word:'',sentence:'',book:'',res:null,busy:false,err:''},
+  add:{word:'',sentence:'',page:'',book:'',res:null,busy:false,err:'',quick:false},
   pr:{queue:[],i:0,shown:false,total:0,sentence:'',finished:false,started:false,good:0}};
 var SKINS=[['cozy','Cozy Library','#12292D','#1B3F45','#E8A94B','#1F7F7E','#F7EAD3','covers','Covers on glowing shelves'],['academia','Dark Academia','#1B1110','#2A1A17','#D6A94F','#6B3F26','#F1E3CB','spines','Leather spines on a bookcase'],['cottage','Cottage Stack','#EEF1E2','#F8F8EE','#4F7A42','#B88B5A','#33402F','stacks','Cosy piles of books'],['pastel','Soft Pastel','#F6F0E8','#FCF9F4','#6F58B5','#C99A6B','#3A3050','gallery','Clean cover gallery'],['blossom','Cherry Blossom','#FBEFEF','#FFF8F6','#B8446A','#D9B4A6','#4A2A3A','gallery','Pink petals and rosy covers'],['midnight','Midnight Library','#0C2428','#133238','#F0B24F','#1F9C98','#F6E7CF','covers','Teal shelves, warm fairy lights'],['sepia','Old Paper','#EADBBE','#F6ECD6','#8B3A2B','#8A5A36','#3A291A','floating','Floating shelves']];
 var saveTimer=null,toastTimer=null;
@@ -355,11 +355,13 @@ async function lookup(){
   var a=S.add,w=a.word.trim();
   if(!w){a.err='Type a word first.';render();return;}
   var dup=null;for(var i=0;i<S.words.length;i++){if(S.words[i].word.toLowerCase()===w.toLowerCase())dup=S.words[i];}
-  if(dup){S.open=dup.id;S.tab='words';toast('Already saved');render();return;}
+  if(dup){a.quick=false;S.open=dup.id;S.tab='words';toast('Already saved');render();return;}
   a.err='';a.res=null;a.busy=true;render();
   try{var r1=null;try{r1=await fromDictApi(w);}catch(e1){r1=await fromWikt(w);}a.res=r1;}
   catch(err){a.res={word:w,pos:'',ipa:'',say:'',audio:'',meaning:'',example:'',tip:'',manual:true};a.err=(navigator.onLine===false?'You are offline. ':'Word not found. ')+'You can type the meaning yourself.';}
-  a.busy=false;render();
+  a.busy=false;
+  if(a.quick&&a.res&&a.res.meaning&&a.res.meaning.trim()&&!a.err){a.quick=false;saveWord();return;}
+  a.quick=false;render();
 }
 
 /* ---------- pieces ---------- */
@@ -559,12 +561,13 @@ function vSettings(){
 }
 function vSettingsDummy(){return '';}
 function vAdd(){
-  var a=S.add,r=a.res,h='';
-  h+='<div><h1>New word</h1><p class="sub">Write down a word you met while reading.</p></div>';
-  h+='<div class="card tint-lilac"><label for="ab">Book you are reading</label><input id="ab" data-in="ab" value="'+esc(a.book)+'" list="booklist" placeholder="Title of the book" autocomplete="off">'+booksData()+
-     '<div id="covprev" class="row cprev"></div><label for="aw">Word</label><input id="aw" data-in="aw" value="'+esc(a.word)+'" autocomplete="off" autocapitalize="none" spellcheck="false">'+
-     '<label for="as">Sentence from the book (optional)</label><textarea id="as" data-in="as" rows="2">'+esc(a.sentence)+'</textarea>'+
-     '<button class="btn" data-act="lookup"'+(a.busy?' disabled':'')+'>'+(a.busy?'Checking…':'Check meaning')+'</button></div>';
+  var a=S.add,r=a.res,h='',hasCtx=!!(a.sentence||a.page);
+  h+='<div><h1>New word</h1><p class="sub">Type the word. We find the meaning and save it.</p></div>';
+  h+='<div class="card tint-lilac"><label for="aw">Word</label><input id="aw" data-in="aw" value="'+esc(a.word)+'" autocomplete="off" autocapitalize="none" spellcheck="false" style="font-size:22px;font-weight:800">'+
+     '<button class="btn" data-act="quicksave"'+(a.busy?' disabled':'')+' style="min-height:54px">'+(a.busy?'Finding the meaning…':'Save word')+'</button>'+
+     '<label for="ab">Book</label><input id="ab" data-in="ab" value="'+esc(a.book)+'" list="booklist" placeholder="Title of the book" autocomplete="off">'+booksData()+'<div id="covprev" class="row cprev"></div>'+
+     '<details'+(hasCtx?' open':'')+'><summary style="cursor:pointer;font-weight:800;padding:6px 0">+ Add the sentence and page</summary><label for="as">Sentence from the book</label><textarea id="as" data-in="as" rows="2">'+esc(a.sentence)+'</textarea><label for="ap">Page</label><input id="ap" data-in="ap" value="'+esc(a.page)+'" inputmode="numeric" placeholder="e.g. 42" maxlength="8"></details>'+
+     '<button class="btn ghost" data-act="lookup"'+(a.busy?' disabled':'')+'>Just check the meaning</button></div>';
   if(a.err)h+='<div class="err">'+esc(a.err)+'</div>';
   if(r){
     h+='<div class="card tint-mint"><div class="row between"><div><div class="word">'+esc(r.word)+'</div><div class="pos">'+esc(r.pos)+'</div></div>'+spk(r.word)+'</div>';
@@ -599,7 +602,7 @@ function vDetail(w){
   h+='<div class="card tint-mint"><div class="row between"><div><div class="word">'+esc(w.word)+'</div><div class="pos">'+esc(w.pos)+'</div></div>'+spk(w.word)+'</div>'+
      '<div class="chips">'+(w.ipa?'<span class="pill">'+esc(w.ipa)+'</span>':'')+'<span class="tag t-'+st+'" style="align-self:center">'+st+'</span></div>'+
      '<p style="margin:0;font-size:17px;font-weight:800">'+esc(w.meaning)+'</p>'+(w.example?'<p style="margin:0;font-family:var(--serif);font-style:italic">'+esc(w.example)+'</p>':'')+'</div>';
-  if(w.book||w.bookTitle)h+='<div class="card"><div class="cap">In your book</div><div class="row" style="align-items:flex-start">'+(coverUrl(w.bookTitle)?'<img class="cimg thumb-lg" src="'+esc(coverUrl(w.bookTitle))+'" alt="Cover of '+esc(w.bookTitle)+'">':'')+'<div class="quote" style="flex:1">'+(w.book?esc(w.book):'')+(w.bookTitle?'<span class="by">'+esc(w.bookTitle)+'</span>':'')+'</div></div></div>';
+  if(w.book||w.bookTitle)h+='<div class="card"><div class="cap">In your book</div><div class="row" style="align-items:flex-start">'+(coverUrl(w.bookTitle)?'<img class="cimg thumb-lg" src="'+esc(coverUrl(w.bookTitle))+'" alt="Cover of '+esc(w.bookTitle)+'">':'')+'<div class="quote" style="flex:1">'+(w.book?esc(w.book):'')+(w.bookTitle?'<span class="by">'+esc(w.bookTitle)+(w.page?' · page '+esc(w.page):'')+'</span>':'')+'</div></div></div>';
   h+='<div class="card tint-lilac"><label for="ms">My own sentence</label><textarea id="ms" data-in="ms" rows="2" placeholder="Write a sentence using this word">'+esc(w.mine||'')+'</textarea><button class="btn" data-act="savemine">Save my sentence</button></div>';
   h+=S.confirmDel?'<div class="row"><button class="btn ghost" data-act="delno" style="flex:1">Keep it</button><button class="btn again" data-act="delyes" style="flex:1">Delete word</button></div>':'<button class="btn ghost" data-act="del">Delete this word</button>';
   return h;
@@ -622,9 +625,12 @@ function vPractice(){
   var w=byId(p.queue[p.i]);
   if(!w){p.i++;return vPractice();}
   h+='<div class="row between"><h1>Practice</h1><span class="sub">'+(p.i+1)+' of '+p.queue.length+'</span></div><div class="bar"><div style="width:'+Math.round(p.i/p.queue.length*100)+'%"></div></div>';
+  var cz='';if(w.book){var re=new RegExp(w.word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig');cz='<div class="quote" style="width:100%;text-align:left">'+esc(w.book).replace(re,'<b>____</b>')+(w.bookTitle?'<span class="by">'+esc(w.bookTitle)+(w.page?' · page '+esc(w.page):'')+'</span>':'')+'</div>';}
+  if(!p.shown&&cz)h+='<div class="cap">Remember this line?</div>'+cz;
   h+='<div class="flash"><div class="word">'+esc(w.word)+'</div>'+(w.ipa?'<div class="pos">'+esc(w.ipa)+'</div>':'')+spk(w.word)+(w.bookTitle?'<div class="cap" style="color:var(--coral)">'+esc(w.bookTitle)+'</div>':'');
   if(p.shown)h+='<div style="width:100%;height:1px;background:var(--line)"></div><div style="font-size:19px;font-weight:800">'+esc(w.meaning)+'</div>'+(w.example?'<div style="font-family:var(--serif);font-style:italic">'+esc(w.example)+'</div>':'');
   h+='</div>';
+  if(p.shown)h+='<div class="card tint-lilac"><label for="pm">Use it in your own sentence</label><textarea id="pm" data-in="pm" rows="2" placeholder="Write a sentence. It helps the word stick.">'+esc(w.mine||'')+'</textarea></div>';
   if(!p.shown)h+='<button class="btn" data-act="show" style="min-height:56px">Show meaning</button>';
   else h+='<div class="grade"><button class="btn again" data-act="again">Again</button><button class="btn got" data-act="got">Got it</button></div>';
   return h;
@@ -641,16 +647,29 @@ function render(){
   tabs.forEach(function(t){var cur=S.tab===t[0]?' aria-current="page"':'';
     n+='<button'+(t[0]==='add'?' class="fab" aria-label="Add a word"':'')+' data-act="tab" data-t="'+t[0]+'"'+cur+'>'+ICO[t[0]]+(t[0]==='add'?'':t[1])+(t[0]==='practice'&&due?'<span class="dot">'+due+'</span>':'')+'</button>';});
   $('#nav').innerHTML=n;
-  if(S.tab==='add')updateCovPrev();
+  if(S.tab==='add'){updateCovPrev();if(!S._fo){S._fo=1;setTimeout(function(){var e=$('#aw');if(e&&!S.add.word)e.focus();},60);}}else S._fo=0;
   renderOverlay();
 }
 
+function saveWord(){
+
+    var r=S.add.res;if(!r)return;
+    if(!r.meaning.trim()){S.add.err='Add the meaning first.';render();return;}
+    var now=Date.now();
+    S.words.push({id:now.toString(36)+Math.random().toString(36).slice(2,5),word:r.word.trim()||S.add.word.trim(),pos:r.pos,ipa:r.ipa,say:r.say,audio:r.audio||'',meaning:r.meaning.trim(),example:r.example,tip:r.tip,book:S.add.sentence.trim(),page:S.add.page.trim(),bookTitle:S.add.book.trim(),mine:'',added:now,box:0,reviews:0,due:now});
+    activity(0);
+    var bt0=S.add.book.trim();if(bt0&&S.covers[bt0]===undefined&&TMP[bt0]!==undefined)S.covers[bt0]=TMP[bt0];
+    if(!DEMO){try{localStorage.setItem('mywords.book',S.add.book.trim());}catch(e2){}}
+    S.add={word:'',sentence:'',page:'',book:S.add.book.trim(),res:null,busy:false,err:'',quick:false};save();fetchCover(S.words[S.words.length-1].bookTitle);toast('Saved to your shelf');S.tab='home';render();$('#view').scrollTop=0;
+}
 /* ---------- events ---------- */
 document.addEventListener('input',function(e){
   var k=e.target.getAttribute&&e.target.getAttribute('data-in');if(!k)return;
   var v=e.target.value;
   if(k==='aw')S.add.word=v;
   else if(k==='as')S.add.sentence=v;
+  else if(k==='ap')S.add.page=v;
+  else if(k==='pm'){var pw=S.pr&&byId(S.pr.queue[S.pr.i]);if(pw){pw.mine=v;save();}}
   else if(k==='ab'){S.add.book=v;scheduleCover();}
   else if(k==='obn'||k==='sn'){S.settings.name=v;save();}
   else if(k==='rm'&&S.add.res)S.add.res.meaning=v;
@@ -694,16 +713,8 @@ document.addEventListener('click',function(e){
   else if(act==='resetyes'){S.words=[];S.meta={streak:0,last:'',best:0,day:{date:'',count:0}};S.covers={};S.confirmReset=false;save();toast('All words deleted');render();}
   else if(act==='installapp'){var d=S.deferred;if(d){d.prompt();S.deferred=null;}}
   else if(act==='lookup')lookup();
-  else if(act==='saveword'){
-    var r=S.add.res;if(!r)return;
-    if(!r.meaning.trim()){S.add.err='Add the meaning first.';render();return;}
-    var now=Date.now();
-    S.words.push({id:now.toString(36)+Math.random().toString(36).slice(2,5),word:r.word.trim()||S.add.word.trim(),pos:r.pos,ipa:r.ipa,say:r.say,audio:r.audio||'',meaning:r.meaning.trim(),example:r.example,tip:r.tip,book:S.add.sentence.trim(),bookTitle:S.add.book.trim(),mine:'',added:now,box:0,reviews:0,due:now});
-    activity(0);
-    var bt0=S.add.book.trim();if(bt0&&S.covers[bt0]===undefined&&TMP[bt0]!==undefined)S.covers[bt0]=TMP[bt0];
-    if(!DEMO){try{localStorage.setItem('mywords.book',S.add.book.trim());}catch(e2){}}
-    S.add={word:'',sentence:'',book:S.add.book.trim(),res:null,busy:false,err:''};save();fetchCover(S.words[S.words.length-1].bookTitle);toast('Saved to your shelf');S.tab='home';render();$('#view').scrollTop=0;
-  }
+  else if(act==='saveword'){saveWord();}
+  else if(act==='quicksave'){S.add.quick=true;lookup();}
   else if(act==='open'){S.tab='words';S.open=b.getAttribute('data-id');S.confirmDel=false;render();$('#view').scrollTop=0;}
   else if(act==='back'){S.open=null;S.confirmDel=false;render();}
   else if(act==='filter'){S.filter=b.getAttribute('data-f');render();}
