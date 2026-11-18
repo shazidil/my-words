@@ -155,7 +155,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .spine::before{top:10px}.spine::after{bottom:10px}
 .spine .st{writing-mode:vertical-rl;font:700 12px var(--serif);color:#F6E7BF;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-height:calc(var(--h) - 44px)}
 .spine.add{background:transparent;border:2px dashed var(--accent);box-shadow:none}.spine.add::before,.spine.add::after{display:none}.spine.add .st{color:var(--accent)}
-.facebook{flex:none;width:calc((100% - 12px)/4 - 6px);max-width:84px;margin-left:0}
+.facebook{flex:none;margin-left:0}.lay-spines{border:9px solid var(--plank);border-radius:10px;background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.06) 40%),var(--wall);box-shadow:inset 0 6px 14px rgba(0,0,0,.35),var(--shadow);padding:14px 4px 6px}.lay-spines .spinerow{gap:3px}.lay-spines .facebook .cover{box-shadow:inset 7px 0 0 rgba(0,0,0,.3),inset 9px 0 0 rgba(255,255,255,.12),0 2px 5px rgba(0,0,0,.5)}
 .facebook .cover{height:auto;aspect-ratio:2/3;width:100%;padding:6px 4px 6px 8px;box-shadow:inset 5px 0 0 rgba(0,0,0,.2),0 4px 8px rgba(0,0,0,.45)}
 .facebook .cover::after{display:none}.facebook .cover b{font-size:11px}.facebook .cover i{display:none}
 .hint{font-size:12px;color:var(--muted);margin:2px 0 0;text-align:center}
@@ -443,9 +443,9 @@ function libraryHtml(){
   var lay=layoutOf(),items=libItems(),rows='',i;
   if(lay==='spines'){
     var all=items.slice(),idx=0;
-    var stand=function(it){return it.add?'<button class="spine add" data-act="goadd" aria-label="Add a word" style="--h:108px;--w:44px"><span class="st">+ Add</span></button>':'<button class="bk2 facebook" data-act="book" data-b="'+esc(it.t)+'" aria-label="'+esc(it.t)+', '+it.n+' words">'+coverHtml(it.t)+'</button>';};
+    var stand=function(it){return it.add?'<button class="spine add" data-act="goadd" aria-label="Add a word" style="--h:108px;--w:44px"><span class="st">+ Add</span></button>':(function(){var k=hashStr(it.t);return '<button class="bk2 facebook" data-act="book" data-b="'+esc(it.t)+'" aria-label="'+esc(it.t)+', '+it.n+' words" style="width:'+(50+k%16)+'px;'+(k%5===0?'transform:rotate(7deg);transform-origin:bottom left;margin-right:10px;':'')+'">'+coverHtml(it.t)+'</button>';})();};
     while(idx<all.length){
-      var chunk=all.slice(idx,idx+4);idx+=4;
+      var chunk=all.slice(idx,idx+5);idx+=5;
       rows+='<div class="spinerow">'+chunk.map(stand).join('')+'</div><div class="plank"></div><div style="height:16px"></div>';
     }
     return '<div class="library lay-spines">'+rows+'<p class="hint">Tap a book to open it</p></div>';
