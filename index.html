@@ -89,10 +89,15 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .cat span{font-weight:600;color:var(--muted);font-size:12px}
 .shelf{display:flex;gap:18px;overflow-x:auto;padding:6px 4px 26px;scroll-snap-type:x mandatory;margin:0 -16px;padding-left:16px;padding-right:16px}
 .book{flex:none;width:116px;scroll-snap-align:start;text-align:left;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:6px}
-.cover{position:relative;height:156px;border-radius:6px 12px 12px 6px;background:var(--c);box-shadow:inset 9px 0 0 rgba(0,0,0,.2),inset -2px 0 0 rgba(255,255,255,.2),0 8px 14px rgba(40,25,20,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px 12px 14px 20px;text-align:center}
+.cover{position:relative;height:174px;overflow:visible;border-radius:6px 12px 12px 6px;background:var(--c);box-shadow:inset 9px 0 0 rgba(0,0,0,.2),inset -2px 0 0 rgba(255,255,255,.2),0 8px 14px rgba(40,25,20,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px 12px 14px 20px;text-align:center}
 .cover::after{content:"";position:absolute;bottom:-16px;right:18px;width:16px;height:34px;background:#F2A33A;clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);box-shadow:0 2px 0 rgba(0,0,0,.1)}
 .cover i{display:block;width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.7)}
 .cover b{font-family:var(--serif);font-size:15px;line-height:1.2;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cover .cimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+.cover.has-img::before{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 9px 0 0 rgba(0,0,0,.18),inset -2px 0 0 rgba(255,255,255,.2);pointer-events:none;z-index:1}
+.cover.has-img i,.cover.has-img b{visibility:hidden}
+.thumb{width:40px;height:60px;border-radius:3px 6px 6px 3px;object-fit:cover;flex:none;box-shadow:0 3px 6px rgba(40,25,20,.3)}
+.thumb-lg{width:64px;height:96px;border-radius:3px 7px 7px 3px;object-fit:cover;flex:none;box-shadow:0 4px 10px rgba(40,25,20,.3)}
 .cover.add{background:transparent;border:2px dashed var(--accent);box-shadow:none;color:var(--accent)}
 .cover.add::after{display:none}
 .book .bt{font-weight:800;font-size:14px;margin-top:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -141,7 +146,7 @@ var LS='mywords.v1',DAY=864e5,GAPS=[0,1,2,4,8,16],GOAL=5;
 var DEMO=/[?&]demo=1/.test(location.search);
 var COVERS=['#3F6FA8','#C94A4A','#3E9C8C','#8A5FB8','#D98A2B','#4D8F5B','#B8587F','#5B6FB5'];
 var S={tab:'home',words:[],t:0,open:null,q:'',filter:'All',bookF:'All books',confirmDel:false,
-  meta:{streak:0,last:'',best:0,day:{date:'',count:0}},
+  meta:{streak:0,last:'',best:0,day:{date:'',count:0}},covers:{},
   add:{word:'',sentence:'',book:'',res:null,busy:false,err:''},
   pr:{queue:[],i:0,shown:false,total:0,sentence:'',finished:false,started:false,good:0}};
 var saveTimer=null,toastTimer=null;
@@ -169,12 +174,12 @@ function colorFor(title){return title?COVERS[hashStr(title)%COVERS.length]:'#8F8
 /* ---------- storage ---------- */
 function loadLocal(){
   try{S.add.book=localStorage.getItem('mywords.book')||'';}catch(e){}
-  try{var d=JSON.parse(localStorage.getItem(LS)||'null');if(d&&d.items){S.words=d.items;S.t=d.t||0;if(d.meta)S.meta=d.meta;}}catch(e){}
+  try{var d=JSON.parse(localStorage.getItem(LS)||'null');if(d&&d.items){S.words=d.items;S.t=d.t||0;if(d.meta)S.meta=d.meta;if(d.covers)S.covers=d.covers;}}catch(e){}
 }
 function save(){
   if(DEMO)return;
   S.t=Date.now();clearTimeout(saveTimer);
-  saveTimer=setTimeout(function(){try{localStorage.setItem(LS,JSON.stringify({items:S.words,t:S.t,meta:S.meta}));}catch(e){}},200);
+  saveTimer=setTimeout(function(){try{localStorage.setItem(LS,JSON.stringify({items:S.words,t:S.t,meta:S.meta,covers:S.covers}));}catch(e){}},200);
 }
 function demoData(){
   var n=Date.now();
@@ -240,7 +245,21 @@ async function lookup(){
 function bookTitles(){var seen={},out=[];S.words.forEach(function(w){var b=(w.bookTitle||'').trim();if(b&&!seen[b]){seen[b]=1;out.push(b);}});return out;}
 function bookCount(t){return S.words.filter(function(w){return (w.bookTitle||'')===t;}).length;}
 function booksData(){var h='<datalist id="booklist">';bookTitles().forEach(function(b){h+='<option value="'+esc(b)+'">';});return h+'</datalist>';}
-function coverHtml(t){return '<span class="cover" style="--c:'+colorFor(t)+'"><i></i><b>'+esc(t)+'</b></span>';}
+function coverUrl(t){return t&&S.covers[t]?S.covers[t]:'';}
+function coverHtml(t){var u=coverUrl(t);return '<span class="cover'+(u?' has-img':'')+'" style="--c:'+colorFor(t)+'"><i></i><b>'+esc(t)+'</b>'+(u?'<img class="cimg" src="'+esc(u)+'" alt="Cover of '+esc(t)+'" loading="lazy">':'')+'</span>';}
+async function fetchCover(t){
+  if(!t||S.covers[t]!==undefined)return;
+  try{
+    var r=await fetch('https://openlibrary.org/search.json?limit=1&fields=cover_i&title='+encodeURIComponent(t));
+    if(!r.ok)return;
+    var d=await r.json(),id=d.docs&&d.docs[0]&&d.docs[0].cover_i;
+    S.covers[t]=id?'https://covers.openlibrary.org/b/id/'+id+'-M.jpg':'';
+    save();
+    var a=document.activeElement;
+    if(!(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT'))&&(S.tab==='home'||S.tab==='words'))render();
+  }catch(e){}
+}
+async function fetchCovers(){var ts=bookTitles();for(var i=0;i<ts.length;i++){await fetchCover(ts[i]);}}
 function miniBook(c){return '<svg width="34" height="40" viewBox="0 0 34 40" aria-hidden="true"><rect x="3" y="2" width="28" height="34" rx="3" fill="'+c+'"/><rect x="3" y="2" width="6" height="34" rx="2" fill="rgba(0,0,0,.2)"/><rect x="14" y="10" width="12" height="3" rx="1.5" fill="rgba(255,255,255,.75)"/><rect x="14" y="16" width="9" height="3" rx="1.5" fill="rgba(255,255,255,.55)"/><path d="M22 36v-9l3 3 3-3v9z" fill="#F2A33A"/></svg>';}
 function stackSvg(n){
   var cols=['#3F6FA8','#C94A4A','#8A5FB8','#3E9C8C','#D98A2B','#B8587F'],ws=[104,92,100,88,96,84],h='',y=132,i;
@@ -301,7 +320,7 @@ function listHtml(){
   if(!arr.length)return '<div class="card note">'+(S.words.length?'No words match.':'No words yet. Add the first word you do not know.')+'</div>';
   arr.forEach(function(w){
     var st=status(w);
-    out+='<button class="item" style="--c:'+colorFor(w.bookTitle)+'" data-act="open" data-id="'+w.id+'"><span class="rib r-'+st+'" aria-hidden="true"></span><span style="flex:1;min-width:0"><span class="w">'+esc(w.word)+'</span><span class="s">'+esc(w.ipa||'')+'</span><br><span class="m">'+esc(w.meaning)+'</span>'+(w.bookTitle?'<br><span class="bk">'+esc(w.bookTitle)+'</span>':'')+'<span style="position:absolute;left:-9999px">'+st+'</span></span></button>';
+    out+='<button class="item" style="--c:'+colorFor(w.bookTitle)+'" data-act="open" data-id="'+w.id+'"><span class="rib r-'+st+'" aria-hidden="true"></span>'+(coverUrl(w.bookTitle)?'<img class="cimg thumb" src="'+esc(coverUrl(w.bookTitle))+'" alt="">':'')+'<span style="flex:1;min-width:0"><span class="w">'+esc(w.word)+'</span><span class="s">'+esc(w.ipa||'')+'</span><br><span class="m">'+esc(w.meaning)+'</span>'+(w.bookTitle?'<br><span class="bk">'+esc(w.bookTitle)+'</span>':'')+'<span style="position:absolute;left:-9999px">'+st+'</span></span></button>';
   });
   return out;
 }
@@ -318,7 +337,7 @@ function vDetail(w){
   h+='<div class="card tint-mint"><div class="row between"><div><div class="word">'+esc(w.word)+'</div><div class="pos">'+esc(w.pos)+'</div></div>'+spk(w.word)+'</div>'+
      '<div class="chips">'+(w.ipa?'<span class="pill">'+esc(w.ipa)+'</span>':'')+'<span class="tag t-'+st+'" style="align-self:center">'+st+'</span></div>'+
      '<p style="margin:0;font-size:17px;font-weight:800">'+esc(w.meaning)+'</p>'+(w.example?'<p style="margin:0;font-family:var(--serif);font-style:italic">'+esc(w.example)+'</p>':'')+'</div>';
-  if(w.book||w.bookTitle)h+='<div class="card"><div class="cap">In your book</div><div class="quote">'+(w.book?esc(w.book):'')+(w.bookTitle?'<span class="by">'+esc(w.bookTitle)+'</span>':'')+'</div></div>';
+  if(w.book||w.bookTitle)h+='<div class="card"><div class="cap">In your book</div><div class="row" style="align-items:flex-start">'+(coverUrl(w.bookTitle)?'<img class="cimg thumb-lg" src="'+esc(coverUrl(w.bookTitle))+'" alt="Cover of '+esc(w.bookTitle)+'">':'')+'<div class="quote" style="flex:1">'+(w.book?esc(w.book):'')+(w.bookTitle?'<span class="by">'+esc(w.bookTitle)+'</span>':'')+'</div></div></div>';
   h+='<div class="card tint-lilac"><label for="ms">My own sentence</label><textarea id="ms" data-in="ms" rows="2" placeholder="Write a sentence using this word">'+esc(w.mine||'')+'</textarea><button class="btn" data-act="savemine">Save my sentence</button></div>';
   h+=S.confirmDel?'<div class="row"><button class="btn ghost" data-act="delno" style="flex:1">Keep it</button><button class="btn again" data-act="delyes" style="flex:1">Delete word</button></div>':'<button class="btn ghost" data-act="del">Delete this word</button>';
   return h;
@@ -386,7 +405,7 @@ document.addEventListener('click',function(e){
     S.words.push({id:now.toString(36)+Math.random().toString(36).slice(2,5),word:r.word.trim()||S.add.word.trim(),pos:r.pos,ipa:r.ipa,say:r.say,audio:r.audio||'',meaning:r.meaning.trim(),example:r.example,tip:r.tip,book:S.add.sentence.trim(),bookTitle:S.add.book.trim(),mine:'',added:now,box:0,reviews:0,due:now});
     activity(0);
     if(!DEMO){try{localStorage.setItem('mywords.book',S.add.book.trim());}catch(e2){}}
-    S.add={word:'',sentence:'',book:S.add.book.trim(),res:null,busy:false,err:''};save();toast('Saved to your shelf');S.tab='home';render();$('#view').scrollTop=0;
+    S.add={word:'',sentence:'',book:S.add.book.trim(),res:null,busy:false,err:''};save();fetchCover(S.words[S.words.length-1].bookTitle);toast('Saved to your shelf');S.tab='home';render();$('#view').scrollTop=0;
   }
   else if(act==='open'){S.tab='words';S.open=b.getAttribute('data-id');S.confirmDel=false;render();$('#view').scrollTop=0;}
   else if(act==='back'){S.open=null;S.confirmDel=false;render();}
@@ -415,8 +434,10 @@ document.addEventListener('click',function(e){
   else if(act==='prdue'){startPractice(false);render();}
 });
 
+document.addEventListener('error',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('cimg')){if(t.parentNode&&t.parentNode.classList)t.parentNode.classList.remove('has-img');t.remove();}},true);
 if(DEMO)demoData();else loadLocal();
 render();
+fetchCovers();
 if('serviceWorker' in navigator&&!DEMO){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 })();
 </script>
