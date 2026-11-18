@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="My Words">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>My Words</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#6F58B5">
@@ -193,6 +198,34 @@ nav .dot{position:absolute;top:4px;right:calc(50% - 22px);min-width:18px;height:
 #toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 18px;border-radius:18px;font-weight:800;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/* safe areas, shelf-style menu, welcome overlay, settings */
+#app{padding-top:env(safe-area-inset-top)}
+nav{margin:0;border-radius:0;padding:10px 10px calc(10px + env(safe-area-inset-bottom));gap:6px;align-items:flex-end;background:linear-gradient(var(--plank-hi),var(--plank) 40%,var(--plank));box-shadow:0 -6px 16px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.25)}
+nav button{background:var(--card);color:var(--ink);border-radius:8px 8px 2px 2px;min-height:56px;box-shadow:0 3px 6px rgba(0,0,0,.35),inset 0 3px 0 rgba(255,255,255,.12);transition:transform .15s}
+nav button::before{content:"";position:absolute;left:6px;right:6px;top:5px;height:2px;background:var(--accent);opacity:.7;border-radius:1px}
+nav button[aria-current="page"]{background:var(--accent);color:var(--on-accent);transform:translateY(-7px);box-shadow:0 8px 10px rgba(0,0,0,.35)}
+nav button[aria-current="page"]::before{background:var(--on-accent)}
+nav .fab{background:var(--grad);color:var(--on-grad);width:60px;flex:none}
+nav .fab::before{display:none}
+nav .dot{top:-6px}
+#overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));background:radial-gradient(circle at 20% 15%,var(--glow) 0 3px,transparent 4px),radial-gradient(circle at 85% 25%,var(--glow) 0 2px,transparent 3px),radial-gradient(circle at 70% 85%,var(--glow) 0 3px,transparent 4px),var(--hero),var(--panel);overflow-y:auto}
+#overlay.on{display:flex}
+.ob{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.ob h1{font-size:30px}
+.ob .sub{font-size:16px}
+.ob input{text-align:center;font-size:20px;font-weight:800}
+.dots{display:flex;gap:8px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--line);display:block}.dots i.on{background:var(--accent);width:24px;border-radius:5px}
+.pip{animation:bob 3s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.spark{animation:tw 2.4s ease-in-out infinite}.spark:nth-of-type(2){animation-delay:.8s}.spark:nth-of-type(3){animation-delay:1.5s}
+@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.pip,.spark{animation:none!important}}
+.setrow{display:flex;flex-direction:column;gap:10px}
+.setcard{background:var(--card);border-radius:24px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.setcard h2{font-size:17px}
+.btn.small{min-height:44px;font-size:15px}
+.about{font-size:12px;color:var(--muted);line-height:1.5}
 </style>
 </head>
 <body>
@@ -201,13 +234,15 @@ nav .dot{position:absolute;top:4px;right:calc(50% - 22px);min-width:18px;height:
   <nav id="nav" aria-label="Main"></nav>
 </div>
 <div id="toast" role="status"></div>
+<div id="overlay" aria-live="polite"></div>
 <script>
 (function(){
-var LS='mywords.v1',DAY=864e5,GAPS=[0,1,2,4,8,16],GOAL=5;
+var LS='mywords.v1',DAY=864e5,GAPS=[0,1,2,4,8,16];
+function goal(){return S.settings.goal||5;}
 var DEMO=/[?&]demo=1/.test(location.search);
 var COVERS=['#3F6FA8','#C94A4A','#3E9C8C','#8A5FB8','#D98A2B','#4D8F5B','#B8587F','#5B6FB5'];
 var S={tab:'home',words:[],t:0,open:null,q:'',filter:'All',bookF:'All books',confirmDel:false,
-  meta:{streak:0,last:'',best:0,day:{date:'',count:0}},covers:{},
+  meta:{streak:0,last:'',best:0,day:{date:'',count:0}},covers:{},settings:{name:'',goal:5,session:10,text:'normal',onboarded:false},stage:'app',ob:1,confirmReset:false,deferred:null,
   add:{word:'',sentence:'',book:'',res:null,busy:false,err:''},
   pr:{queue:[],i:0,shown:false,total:0,sentence:'',finished:false,started:false,good:0}};
 var SKINS=[['cozy','Cozy Library','#12292D','#1B3F45','#E8A94B','#1F7F7E','#F7EAD3','covers','Covers on glowing shelves'],['academia','Dark Academia','#1B1110','#2A1A17','#D6A94F','#6B3F26','#F1E3CB','spines','Leather spines on a bookcase'],['cottage','Cottage Stack','#EEF1E2','#F8F8EE','#4F7A42','#B88B5A','#33402F','stacks','Cosy piles of books'],['pastel','Soft Pastel','#F6F0E8','#FCF9F4','#6F58B5','#C99A6B','#3A3050','gallery','Clean cover gallery'],['sepia','Old Paper','#EADBBE','#F6ECD6','#8B3A2B','#8A5A36','#3A291A','floating','Floating shelves']];
@@ -243,12 +278,12 @@ function colorFor(title){return title?COVERS[hashStr(title)%COVERS.length]:'#8F8
 /* ---------- storage ---------- */
 function loadLocal(){
   try{S.add.book=localStorage.getItem('mywords.book')||'';}catch(e){}
-  try{var d=JSON.parse(localStorage.getItem(LS)||'null');if(d&&d.items){S.words=d.items;S.t=d.t||0;if(d.meta)S.meta=d.meta;if(d.covers)S.covers=d.covers;}}catch(e){}
+  try{var d=JSON.parse(localStorage.getItem(LS)||'null');if(d&&d.items){S.words=d.items;S.t=d.t||0;if(d.meta)S.meta=d.meta;if(d.covers)S.covers=d.covers;if(d.settings)for(var k in d.settings)S.settings[k]=d.settings[k];}}catch(e){}
 }
 function save(){
   if(DEMO)return;
   S.t=Date.now();clearTimeout(saveTimer);
-  saveTimer=setTimeout(function(){try{localStorage.setItem(LS,JSON.stringify({items:S.words,t:S.t,meta:S.meta,covers:S.covers}));}catch(e){}},200);
+  saveTimer=setTimeout(function(){try{localStorage.setItem(LS,JSON.stringify({items:S.words,t:S.t,meta:S.meta,covers:S.covers,settings:S.settings}));}catch(e){}},200);
 }
 function demoData(){
   var n=Date.now();
@@ -363,6 +398,7 @@ function stackSvg(n){
 }
 var ICO={
   palette:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 1.4-2-.6-1 0-2.3 1.4-2.3H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></svg>',
+  settings:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
   home:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>',
   words:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6"/></svg>',
   add:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
@@ -432,14 +468,13 @@ function libraryHtmlCovers(){
 function vHome(){
   var total=S.words.length,learned=S.words.filter(function(w){return status(w)==='Learned';}).length,due=dueCount(),st=streakNow(),done=doneToday();
   var hr=new Date().getHours(),greet=hr<12?'Good morning':(hr<18?'Good afternoon':'Good evening');
-  var pct=Math.min(1,done/GOAL),C=2*Math.PI*26;
-  var h='<div class="row between"><div><div class="hello">'+greet+', reader</div><h1>Your word shelf</h1></div><div class="row" style="gap:8px"><button class="streak" data-act="themes" aria-label="Choose a theme">'+ICO.palette+'</button><div class="streak" title="Days in a row">'+ICO.flame+'<span>'+st+'</span></div></div></div>';
-  if(S.themeOpen){h+='<div class="card"><h2>Choose your library</h2><div class="themes">'+SKINS.map(function(k){return '<button class="theme" data-act="skin" data-s="'+k[0]+'" aria-pressed="'+(S.skin===k[0])+'" style="background:'+k[2]+';color:'+k[6]+'"><span class="sw" style="display:none"></span>'+miniLayout(k)+k[1]+'<small>'+k[8]+'</small></button>';}).join('')+'</div></div>';}
-  h+='<div class="hero"><div class="row"><div class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+(C*pct)+' '+C+'" transform="rotate(-90 32 32)"/></svg><b>'+Math.min(done,GOAL)+'/'+GOAL+'</b></div>'+
-    '<div style="flex:1"><h2>'+(done>=GOAL?'Goal reached today':'Today\'s reading goal')+'</h2><p class="sub" style="color:var(--ink);opacity:.8">'+(total?(due?due+' word'+(due>1?'s':'')+' waiting for you':'You are all caught up'):'Add the first word you meet in your book')+'</p></div></div>'+
+  var pct=Math.min(1,done/goal()),C=2*Math.PI*26;
+  var h='<div class="row between"><div><div class="hello">'+greet+', '+esc(S.settings.name||'reader')+'</div><h1>Your word shelf</h1></div><div class="row" style="gap:8px"><button class="streak" data-act="themes" aria-label="Choose a theme">'+ICO.palette+'</button><div class="streak" title="Days in a row">'+ICO.flame+'<span>'+st+'</span></div></div></div>';
+  h+='<div class="row between"><h2>Your library</h2><button class="back" data-act="gowords" style="min-height:32px">All words</button></div>'+libraryHtml();
+  h+='<div class="hero"><div class="row"><div class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+(C*pct)+' '+C+'" transform="rotate(-90 32 32)"/></svg><b>'+Math.min(done,goal())+'/'+goal()+'</b></div>'+
+    '<div style="flex:1"><h2>'+(done>=goal()?'Goal reached today':'Today\'s reading goal')+'</h2><p class="sub" style="color:var(--ink);opacity:.8">'+(total?(due?due+' word'+(due>1?'s':'')+' waiting for you':'You are all caught up'):'Add the first word you meet in your book')+'</p></div></div>'+
     '<button class="btn" data-act="'+(total?'gopractice':'goadd')+'">'+(total?'Practice now':'Add a word')+'</button></div>';
   h+='<div class="cats">'+[['All','#6F58B5',total],['New','#B7A7DB',S.words.filter(function(w){return status(w)==='New';}).length],['Learning','#F2A33A',S.words.filter(function(w){return status(w)==='Learning';}).length],['Learned','#4FA477',learned]].map(function(c){return '<button class="cat" data-act="cat" data-f="'+c[0]+'">'+miniBook(c[1])+c[0]+'<span>'+c[2]+'</span></button>';}).join('')+'</div>';
-  h+='<div class="row between"><h2>Your library</h2><button class="back" data-act="gowords" style="min-height:32px">All words</button></div>'+libraryHtml();
   var next=[5,10,25,50,100,250,500,1000].filter(function(m){return m>learned;})[0]||1000,stackN=Math.max(1,Math.min(6,1+Math.floor(total/4)));
   h+='<div class="card tint-sky"><div class="stack">'+stackSvg(stackN)+'<div style="flex:1;display:flex;flex-direction:column;gap:8px"><h2>'+learned+' word'+(learned===1?'':'s')+' learned</h2><div class="bar"><div style="width:'+Math.round(learned/next*100)+'%"></div></div><span class="note" style="color:var(--sky-ink)">Next goal: '+next+' words learned. Your stack grows as you add words.</span><span class="note" style="color:var(--sky-ink)">Best streak: '+((S.meta.best||0))+' days</span></div></div></div>';
   var cand=S.words.filter(function(w){return status(w)!=='Learned';});if(!cand.length)cand=S.words;
@@ -447,6 +482,54 @@ function vHome(){
     h+='<div class="card tint-peach wod"><div class="cap" style="color:var(--peach-ink)">Word of the day</div><div class="row between"><div><div class="word">'+esc(wd.word)+'</div><div class="pos">'+esc(wd.pos)+' '+esc(wd.ipa)+'</div></div>'+spk(wd.word)+'</div><div style="font-weight:700">'+esc(wd.meaning)+'</div><button class="btn soft" data-act="open" data-id="'+wd.id+'">Open this word</button></div>';}
   return h;
 }
+function pip(size){
+  return '<svg class="pip" width="'+size+'" height="'+size+'" viewBox="0 0 200 200" aria-hidden="true">'+
+  '<path d="M18 142 Q58 122 100 142 Q142 122 182 142 L182 178 Q142 160 100 178 Q58 160 18 178Z" fill="#F7EBD0" stroke="#C9A97A" stroke-width="3" stroke-linejoin="round"/>'+
+  '<path d="M100 142 V178" stroke="#C9A97A" stroke-width="3"/><path d="M34 152q20-8 50 0M34 162q20-8 50 0M116 152q30-8 50 0M116 162q30-8 50 0" stroke="#E2CFA8" stroke-width="3" fill="none" stroke-linecap="round"/>'+
+  '<path d="M150 124v36l7-6 7 6v-36z" fill="#F2A33A"/>'+
+  '<path d="M100 150C100 134 76 130 80 110C84 94 102 96 100 84" stroke="#8CCB7E" stroke-width="30" fill="none" stroke-linecap="round"/>'+
+  '<path d="M88 126q12 6 24 0M86 108q12 6 26 0" stroke="#74B467" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>'+
+  '<circle cx="100" cy="62" r="34" fill="#8CCB7E"/>'+
+  '<path d="M90 32q-8-14-18-12M110 32q8-14 18-12" stroke="#74B467" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="71" cy="20" r="5" fill="#F29B7E"/><circle cx="129" cy="20" r="5" fill="#F29B7E"/>'+
+  '<circle cx="86" cy="60" r="13" fill="#fff" stroke="#5A4632" stroke-width="3"/><circle cx="114" cy="60" r="13" fill="#fff" stroke="#5A4632" stroke-width="3"/><path d="M99 60h2" stroke="#5A4632" stroke-width="3"/>'+
+  '<circle cx="87" cy="61" r="6" fill="#2B3A2B"/><circle cx="113" cy="61" r="6" fill="#2B3A2B"/><circle cx="89" cy="58.5" r="2" fill="#fff"/><circle cx="115" cy="58.5" r="2" fill="#fff"/>'+
+  '<circle cx="74" cy="76" r="6" fill="#F6A5A5" opacity=".75"/><circle cx="126" cy="76" r="6" fill="#F6A5A5" opacity=".75"/>'+
+  '<path d="M92 78q8 8 16 0" stroke="#2B3A2B" stroke-width="3.5" fill="none" stroke-linecap="round"/>'+
+  '<path class="spark" d="M30 70l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#F2A33A"/><path class="spark" d="M168 54l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z" fill="#F29B7E"/><path class="spark" d="M160 110l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#9AD88F"/></svg>';
+}
+function skinTiles(act){return '<div class="themes" style="width:100%">'+SKINS.map(function(k){return '<button class="theme" data-act="'+act+'" data-s="'+k[0]+'" aria-pressed="'+(S.skin===k[0])+'" style="background:'+k[2]+';color:'+k[6]+'">'+miniLayout(k)+k[1]+'<small>'+k[8]+'</small></button>';}).join('')+'</div>';}
+function goalChips(act,cur,vals,suffix){return '<div class="chips">'+vals.map(function(v){return '<button class="chip" data-act="'+act+'" data-v="'+v+'" aria-pressed="'+(cur==v)+'">'+v+(suffix||'')+'</button>';}).join('')+'</div>';}
+function renderOverlay(){
+  var o=$('#overlay'),h='';
+  if(S.stage==='app'){o.className='';o.innerHTML='';return;}
+  var nm=esc(S.settings.name||'');
+  if(S.stage==='splash'){
+    h='<button class="ob" data-act="skipsplash" style="background:none;border:0;color:inherit;font:inherit;cursor:pointer">'+pip(190)+'<h1>Welcome back'+(nm?', '+nm:'')+'!</h1><p class="sub">Let us grow your word shelf today.</p><span class="note">Tap to continue</span></button>';
+  }else if(S.ob===1){
+    h='<div class="ob">'+pip(190)+'<h1>Hi, I am Pip!</h1><p class="sub">Your little reading buddy. I will help you remember every new word you find in your books.</p><label for="obn" style="align-self:stretch;text-align:left">What should I call you?</label><input id="obn" data-in="obn" value="'+nm+'" placeholder="Your name" autocomplete="given-name" maxlength="24"><button class="btn" data-act="obnext" style="align-self:stretch;min-height:52px">Next</button><div class="dots"><i class="on"></i><i></i><i></i></div></div>';
+  }else if(S.ob===2){
+    h='<div class="ob"><h1>Choose your library</h1><p class="sub">Every library shows your books in its own way. You can change it later in Settings.</p>'+skinTiles('obskin')+'<div class="row" style="align-self:stretch"><button class="btn ghost" data-act="obback" style="flex:1">Back</button><button class="btn" data-act="obnext" style="flex:2">Next</button></div><div class="dots"><i></i><i class="on"></i><i></i></div></div>';
+  }else{
+    h='<div class="ob">'+pip(130)+'<h1>Pick a daily goal</h1><p class="sub">How many words do you want to practice each day? A small goal is easy to keep.</p>'+goalChips('obgoal',S.settings.goal,[3,5,10,15],' words')+'<div class="row" style="align-self:stretch"><button class="btn ghost" data-act="obback" style="flex:1">Back</button><button class="btn" data-act="obdone" style="flex:2">Start reading</button></div><div class="dots"><i></i><i></i><i class="on"></i></div></div>';
+  }
+  o.innerHTML=h;o.className='on';
+}
+function applyText(){var z={small:.92,normal:1,large:1.12}[S.settings.text]||1;document.body.style.zoom=z;}
+function download(name,text,type){var b=new Blob([text],{type:type}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},600);}
+function csvCell(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
+function exportCsv(){var rows=[['Word','Part of speech','Pronunciation','Meaning','Example','Book','Sentence from the book','My sentence','Status']];S.words.forEach(function(w){rows.push([w.word,w.pos,w.ipa,w.meaning,w.example,w.bookTitle,w.book,w.mine,status(w)]);});download('my-words.csv',rows.map(function(r){return r.map(csvCell).join(',');}).join('\n'),'text/csv');}
+function vSettings(){
+  var h='<div><h1>Settings</h1><p class="sub">Make My Words feel like yours.</p></div>';
+  h+='<div class="setcard"><h2>You</h2><label for="sn">Your name</label><input id="sn" data-in="sn" value="'+esc(S.settings.name)+'" placeholder="Your name" maxlength="24" autocomplete="given-name"></div>';
+  h+='<div class="setcard"><h2>Library style</h2><p class="sub">Each style shows your books in a different way.</p>'+skinTiles('skin')+'</div>';
+  h+='<div class="setcard"><h2>Daily goal</h2>'+goalChips('setgoal',S.settings.goal,[3,5,10,15],' words')+'<h2>Words in one practice</h2>'+goalChips('setsess',S.settings.session,[5,10,20],' words')+'<h2>Text size</h2><div class="chips">'+[['small','Small'],['normal','Normal'],['large','Large']].map(function(t){return '<button class="chip" data-act="settext" data-v="'+t[0]+'" aria-pressed="'+(S.settings.text===t[0])+'">'+t[1]+'</button>';}).join('')+'</div></div>';
+  h+='<div class="setcard"><h2>Install</h2>'+(S.deferred?'<button class="btn" data-act="installapp">Install My Words on this device</button>':'<p class="about"><b>Android (Chrome):</b> tap the ⋮ menu, then Install app.<br><b>iPhone and iPad (Safari):</b> tap Share, then Add to Home Screen.</p>')+'</div>';
+  h+='<div class="setcard"><h2>Your data</h2><p class="about">Your words are saved on this device. Make a backup now and then.</p><div class="row" style="flex-wrap:wrap"><button class="btn small soft" data-act="exportcsv">Export as CSV</button><button class="btn small soft" data-act="exportjson">Backup file</button><label class="btn small soft" for="imp" style="display:inline-flex;align-items:center;cursor:pointer;text-transform:none;letter-spacing:0;font-size:15px;color:var(--lilac-ink)">Restore backup</label><input id="imp" type="file" accept="application/json,.json" style="position:absolute;left:-9999px"></div>'+
+     (S.confirmReset?'<div class="row"><button class="btn ghost small" data-act="resetno" style="flex:1">Keep my words</button><button class="btn again small" data-act="resetyes" style="flex:1">Delete everything</button></div>':'<button class="btn ghost small" data-act="resetask">Delete all my words</button>')+'</div>';
+  h+='<div class="setcard"><h2>About</h2><p class="about">My Words, version 1.0.<br>Meanings come from dictionaryapi.dev and Wiktionary. Book covers come from Open Library.</p></div>';
+  return h;
+}
+function vSettingsDummy(){return '';}
 function vAdd(){
   var a=S.add,r=a.res,h='';
   h+='<div><h1>New word</h1><p class="sub">Write down a word you met while reading.</p></div>';
@@ -494,7 +577,7 @@ function vDetail(w){
   return h;
 }
 function startPractice(all){
-  var now=Date.now(),q=S.words.filter(function(w){return all||w.due<=now;}).sort(function(a,b){return a.due-b.due;}).slice(0,10);
+  var now=Date.now(),q=S.words.filter(function(w){return all||w.due<=now;}).sort(function(a,b){return a.due-b.due;}).slice(0,S.settings.session||10);
   S.pr={queue:q.map(function(w){return w.id;}),i:0,shown:false,total:q.length,sentence:'',finished:!q.length,started:true,good:0};
 }
 function vPractice(){
@@ -523,13 +606,15 @@ function render(){
   if(S.tab==='home')h=vHome();
   else if(S.tab==='add')h=vAdd();
   else if(S.tab==='words'){var w=S.open?byId(S.open):null;h=w?vDetail(w):vWords();}
+  else if(S.tab==='settings')h=vSettings();
   else h=vPractice();
   v.innerHTML=h;
-  var due=dueCount(),tabs=[['home','Home'],['words','My words'],['add','Add'],['practice','Practice']],n='';
+  var due=dueCount(),tabs=[['home','Home'],['words','Words'],['add','Add'],['practice','Practice'],['settings','Settings']],n='';
   tabs.forEach(function(t){var cur=S.tab===t[0]?' aria-current="page"':'';
     n+='<button'+(t[0]==='add'?' class="fab" aria-label="Add a word"':'')+' data-act="tab" data-t="'+t[0]+'"'+cur+'>'+ICO[t[0]]+(t[0]==='add'?'':t[1])+(t[0]==='practice'&&due?'<span class="dot">'+due+'</span>':'')+'</button>';});
   $('#nav').innerHTML=n;
   if(S.tab==='add')updateCovPrev();
+  renderOverlay();
 }
 
 /* ---------- events ---------- */
@@ -539,18 +624,46 @@ document.addEventListener('input',function(e){
   if(k==='aw')S.add.word=v;
   else if(k==='as')S.add.sentence=v;
   else if(k==='ab'){S.add.book=v;scheduleCover();}
+  else if(k==='obn'||k==='sn'){S.settings.name=v;save();}
   else if(k==='rm'&&S.add.res)S.add.res.meaning=v;
   else if(k==='q'){S.q=v;$('#list').innerHTML=listHtml();}
   else if(k==='bk'){S.bookF=v;$('#list').innerHTML=listHtml();}
   else if(k==='ms'){var w=byId(S.open);if(w){w.mine=v;save();}}
 });
+document.addEventListener('change',function(e){
+  if(e.target&&e.target.id==='imp'&&e.target.files&&e.target.files[0]){
+    var fr=new FileReader();
+    fr.onload=function(){try{
+      var d=JSON.parse(fr.result),have={},n=0;
+      S.words.forEach(function(w){have[w.word.toLowerCase()]=1;});
+      (d.items||[]).forEach(function(w){if(w&&w.word&&!have[String(w.word).toLowerCase()]){S.words.push(w);n++;}});
+      if(d.covers)for(var k in d.covers){if(S.covers[k]===undefined)S.covers[k]=d.covers[k];}
+      save();toast(n+' word'+(n===1?'':'s')+' restored');render();
+    }catch(err){toast('That file could not be read');}};
+    fr.readAsText(e.target.files[0]);
+  }
+});
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();S.deferred=e;if(S.tab==='settings')render();});
 document.addEventListener('click',function(e){
   var b=e.target.closest&&e.target.closest('[data-act]');if(!b)return;
   var act=b.getAttribute('data-act'),p=S.pr;
   if(act==='tab'){S.tab=b.getAttribute('data-t');S.open=null;S.confirmDel=false;if(S.tab==='practice'&&(p.finished||p.i>=p.queue.length))p.started=false;if(S.tab==='words'){S.filter='All';S.bookF='All books';S.q='';}render();$('#view').scrollTop=0;}
   else if(act==='speak')speak(b.getAttribute('data-w'));
-  else if(act==='themes'){S.themeOpen=!S.themeOpen;render();}
-  else if(act==='skin'){setSkin(b.getAttribute('data-s'));render();}
+  else if(act==='themes'){S.tab='settings';render();}
+  else if(act==='skin'||act==='obskin'){setSkin(b.getAttribute('data-s'));render();}
+  else if(act==='skipsplash'){S.stage='app';render();}
+  else if(act==='obnext'){S.ob=Math.min(3,S.ob+1);if(S.ob===2&&!S.settings.name){}renderOverlay();}
+  else if(act==='obback'){S.ob=Math.max(1,S.ob-1);renderOverlay();}
+  else if(act==='obgoal'||act==='setgoal'){S.settings.goal=+b.getAttribute('data-v');save();render();}
+  else if(act==='setsess'){S.settings.session=+b.getAttribute('data-v');save();render();}
+  else if(act==='settext'){S.settings.text=b.getAttribute('data-v');applyText();save();render();}
+  else if(act==='obdone'){S.settings.onboarded=true;S.stage='app';S.tab='home';save();render();}
+  else if(act==='exportcsv'){exportCsv();}
+  else if(act==='exportjson'){download('my-words-backup.json',JSON.stringify({items:S.words,meta:S.meta,covers:S.covers,settings:S.settings}),'application/json');}
+  else if(act==='resetask'){S.confirmReset=true;render();}
+  else if(act==='resetno'){S.confirmReset=false;render();}
+  else if(act==='resetyes'){S.words=[];S.meta={streak:0,last:'',best:0,day:{date:'',count:0}};S.covers={};S.confirmReset=false;save();toast('All words deleted');render();}
+  else if(act==='installapp'){var d=S.deferred;if(d){d.prompt();S.deferred=null;}}
   else if(act==='lookup')lookup();
   else if(act==='saveword'){
     var r=S.add.res;if(!r)return;
@@ -592,7 +705,9 @@ document.addEventListener('click',function(e){
 var mm=location.search.match(/[?&]skin=(\w+)/),sv='';try{sv=localStorage.getItem('mywords.skin')||'';}catch(e){}
 setSkin(mm?mm[1]:(sv||'cozy'),!!mm);
 document.addEventListener('error',function(e){var t=e.target;if(t&&t.classList&&t.classList.contains('cimg')){if(t.parentNode&&t.parentNode.classList)t.parentNode.classList.remove('has-img');t.remove();}},true);
-if(DEMO)demoData();else loadLocal();
+if(DEMO){demoData();S.settings.name='reader';S.settings.onboarded=true;}else loadLocal();
+applyText();
+if(!DEMO){if(!S.settings.onboarded){S.stage='onboard';}else{S.stage='splash';setTimeout(function(){if(S.stage==='splash'){S.stage='app';renderOverlay();}},1700);}}
 render();
 fetchCovers();
 if('serviceWorker' in navigator&&!DEMO){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
