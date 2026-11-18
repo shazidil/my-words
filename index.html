@@ -454,6 +454,8 @@ function miniLayout(k){
   else{[0,1].forEach(function(i){h+='<rect x="'+(14+i*42)+'" y="6" width="26" height="28" rx="2" fill="'+(i?cd:ac)+'" transform="rotate('+(i?2:-2)+' '+(27+i*42)+' 20)"/>';});h+='<rect x="6" y="36" width="84" height="3" rx="1" fill="'+pl+'"/><rect x="20" y="39" width="3" height="5" fill="'+pl+'"/><rect x="73" y="39" width="3" height="5" fill="'+pl+'"/>';}
   return '<span style="display:block">'+h+'</svg></span>';
 }
+var APP_VERSION='2.0',APP_DATE='19 Nov 2026';
+var CHANGELOG=[['2.0','19 Nov 2026','Find the right book cover by author, "Try another" cover, home screen shows only your bookshelf, version numbers.'],['1.9','19 Nov 2026','New app logo.'],['1.8','19 Nov 2026','Real book spines (cover color, title, author) and new scene themes: Lavender, Mint, Peach, Autumn Maple, Ocean.'],['1.7','18 Nov 2026','Cute light themes and a theme setup preview.'],['1.6','18 Nov 2026','One-tap add, page numbers, fill-in-the-blank practice and your own sentences.'],['1.5','18 Nov 2026','Cherry Blossom and Midnight Library themes, featured word, cleaner menu.'],['1.0','18 Nov 2026','First version: words, meanings, pronunciation, practice, library shelf.']];
 var SPINES=['#7A2630','#2F5D4A','#23365E','#B07A2A','#5B3A6B','#3C6E71','#8A4B2A','#4A4A52'],PILES=['#B8482C','#4F7A42','#4A6FA5','#D9A441','#9A5C8F','#3E8E8A'];
 function libItems(){var it=bookTitles().map(function(t){return {t:t,n:bookCount(t)};});it.push({add:true});return it;}
 function libraryHtml(){
@@ -592,7 +594,7 @@ function vSettings(){
   h+='<div class="setcard"><h2>Install</h2>'+(S.deferred?'<button class="btn" data-act="installapp">Install My Words on this device</button>':'<p class="about"><b>Android (Chrome):</b> tap the ⋮ menu, then Install app.<br><b>iPhone and iPad (Safari):</b> tap Share, then Add to Home Screen.</p>')+'</div>';
   h+='<div class="setcard"><h2>Your data</h2><p class="about">Your words are saved on this device. Make a backup now and then.</p><div class="row" style="flex-wrap:wrap"><button class="btn small soft" data-act="exportcsv">Export as CSV</button><button class="btn small soft" data-act="exportjson">Backup file</button><label class="btn small soft" for="imp" style="display:inline-flex;align-items:center;cursor:pointer;text-transform:none;letter-spacing:0;font-size:15px;color:var(--lilac-ink)">Restore backup</label><input id="imp" type="file" accept="application/json,.json" style="position:absolute;left:-9999px"></div>'+
      (S.confirmReset?'<div class="row"><button class="btn ghost small" data-act="resetno" style="flex:1">Keep my words</button><button class="btn again small" data-act="resetyes" style="flex:1">Delete everything</button></div>':'<button class="btn ghost small" data-act="resetask">Delete all my words</button>')+'</div>';
-  h+='<div class="setcard"><h2>About</h2><p class="about">My Words, version 1.0.</p></div>';
+  h+='<div class="setcard"><h2>About</h2><p class="about"><b>My Words, version '+APP_VERSION+'</b> ('+APP_DATE+')</p><details style="margin-top:8px"><summary style="cursor:pointer;font-weight:800">What is new</summary><div class="about" style="margin-top:8px">'+CHANGELOG.map(function(c){return '<p style="margin:0 0 10px"><b>'+c[0]+'</b> · '+c[1]+'<br>'+c[2]+'</p>';}).join('')+'</div></details></div>';
   return h;
 }
 function vSettingsDummy(){return '';}

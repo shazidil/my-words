@@ -33,6 +33,10 @@ jobs:
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
           npx cap init "My Words" com.shazidil.mywords --web-dir=www
           npx cap add android
+          VER=$(grep -o "APP_VERSION='[0-9.]*'" "$GITHUB_WORKSPACE/index.html" | grep -o "[0-9.]*[0-9]")
+          CODE=$(echo "$VER" | awk -F. '{print $1*100+$2}')
+          sed -i "s/versionName \".*\"/versionName \"$VER\"/; s/versionCode [0-9]*/versionCode $CODE/" android/app/build.gradle
+          echo "$VER" > "$GITHUB_WORKSPACE/.appver"
           npx cap sync android
           pip install pillow --break-system-packages || pip install pillow
           python3 - <<'PY'
@@ -62,4 +66,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete apk-latest --yes --cleanup-tag || true
-          gh release create apk-latest my-words.apk --title "My Words (Android app)" --notes "Install: download my-words.apk on your Android phone and open it. Allow installs from this source if asked."
+          gh release create apk-latest my-words.apk --title "My Words (Android app) v$(cat .appver 2>/dev/null)" --notes "Install: download my-words.apk on your Android phone and open it. Allow installs from this source if asked."
