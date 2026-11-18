@@ -105,6 +105,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .feat svg.bk{width:46%;max-width:190px;flex-shrink:0;filter:drop-shadow(0 8px 10px rgba(0,0,0,.35))}
 .feat .petal{position:absolute;width:14px;height:14px;border-radius:14px 0 14px 0;background:#F4A6B8;opacity:.8;animation:fall 7s linear infinite}
 @keyframes fall{from{transform:translateY(-20px) rotate(0)}to{transform:translateY(220px) rotate(300deg)}}
+.goalbar{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--card);color:var(--ink);border-radius:20px;padding:12px 14px;font:inherit;cursor:pointer;box-shadow:var(--shadow)}.goalbar .gb{width:46px;height:46px;border-radius:50%;background:var(--lilac);color:var(--lilac-ink);display:flex;align-items:center;justify-content:center;font-weight:800}.goalbar .go{background:var(--accent);color:var(--on-accent);border-radius:99px;padding:8px 14px;font-weight:800}
 .deco{height:0;position:relative;pointer-events:none}.deco svg{position:absolute;right:-6px;top:-22px;width:150px;opacity:.95;z-index:0}.deco~.row .streak{position:relative;z-index:1}.deco+.row{margin-top:40px}
 :root[data-skin="midnight"] #view{background-image:radial-gradient(circle at 15% 10%,rgba(255,190,90,.16) 0 3px,transparent 4px),radial-gradient(circle at 80% 30%,rgba(255,190,90,.14) 0 2px,transparent 3px),radial-gradient(circle at 40% 70%,rgba(255,190,90,.12) 0 3px,transparent 4px)}
 @media(prefers-reduced-motion:reduce){.feat .petal{animation:none}}
@@ -148,15 +149,15 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .gcard .cover::after{display:none}.gcard .cover b{font-size:11px;-webkit-line-clamp:4}.gcard .cover i{width:20px;height:20px;border-width:2px}
 .gcard .cover.add{box-shadow:none;background:transparent}
 .gcard .lb b{font-size:12px}
-.spinerow{display:flex;gap:4px;align-items:flex-end;padding:0 6px;min-height:150px}
+.spinerow{display:flex;gap:10px;align-items:flex-end;padding:0 10px;min-height:120px}
 .spine{flex:0 1 var(--w);width:var(--w);min-width:28px;height:var(--h);border:0;border-radius:3px 3px 1px 1px;position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:18px 0;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.1) 28%,rgba(0,0,0,.22)),var(--c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),2px 0 4px rgba(0,0,0,.35)}
 .spine::before,.spine::after{content:"";position:absolute;left:3px;right:3px;height:3px;background:rgba(236,205,125,.9)}
 .spine::before{top:10px}.spine::after{bottom:10px}
 .spine .st{writing-mode:vertical-rl;font:700 12px var(--serif);color:#F6E7BF;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-height:calc(var(--h) - 44px)}
 .spine.add{background:transparent;border:2px dashed var(--accent);box-shadow:none}.spine.add::before,.spine.add::after{display:none}.spine.add .st{color:var(--accent)}
-.facebook{flex:none;width:62px;margin-left:6px}
+.facebook{flex:none;width:calc((100% - 12px)/4 - 6px);max-width:84px;margin-left:0}
 .facebook .cover{height:auto;aspect-ratio:2/3;width:100%;padding:6px 4px 6px 8px;box-shadow:inset 5px 0 0 rgba(0,0,0,.2),0 4px 8px rgba(0,0,0,.45)}
-.facebook .cover::after{display:none}.facebook .cover b{font-size:10px}.facebook .cover i{display:none}
+.facebook .cover::after{display:none}.facebook .cover b{font-size:11px}.facebook .cover i{display:none}
 .hint{font-size:12px;color:var(--muted);margin:2px 0 0;text-align:center}
 .pilerow{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end;padding:0 4px}
 .pile{display:flex;flex-direction:column-reverse;gap:2px}
@@ -262,7 +263,7 @@ var S={tab:'home',words:[],t:0,open:null,q:'',filter:'All',bookF:'All books',con
   pr:{queue:[],i:0,shown:false,total:0,sentence:'',finished:false,started:false,good:0}};
 var SKINS=[['cozy','Cozy Library','#12292D','#1B3F45','#E8A94B','#1F7F7E','#F7EAD3','covers','Covers on glowing shelves'],['academia','Dark Academia','#1B1110','#2A1A17','#D6A94F','#6B3F26','#F1E3CB','spines','Leather spines on a bookcase'],['cottage','Cottage Stack','#EEF1E2','#F8F8EE','#4F7A42','#B88B5A','#33402F','stacks','Cosy piles of books'],['pastel','Soft Pastel','#F6F0E8','#FCF9F4','#6F58B5','#C99A6B','#3A3050','gallery','Clean cover gallery'],['blossom','Cherry Blossom','#FBEFEF','#FFF8F6','#B8446A','#D9B4A6','#4A2A3A','gallery','Pink petals and rosy covers'],['midnight','Midnight Library','#0C2428','#133238','#F0B24F','#1F9C98','#F6E7CF','covers','Teal shelves, warm fairy lights'],['sepia','Old Paper','#EADBBE','#F6ECD6','#8B3A2B','#8A5A36','#3A291A','floating','Floating shelves']];
 var saveTimer=null,toastTimer=null;
-var LAYOUTS=[['covers','Cover Shelf','Covers on wooden shelves'],['spines','Spine Bookcase','Books standing spine-out'],['stacks','Book Piles','Cosy stacks of books'],['gallery','Cover Gallery','A clean grid of covers'],['floating','Floating Shelves','Tilted covers on thin shelves']];
+var LAYOUTS=[['covers','Cover Shelf','Covers on wooden shelves'],['spines','Standing Books','Real covers standing on the shelf'],['stacks','Book Piles','Cosy stacks of books'],['gallery','Cover Gallery','A clean grid of covers'],['floating','Floating Shelves','Tilted covers on thin shelves']];
 function layoutOf(){return S.layout||'covers';}
 function curSkin(){var f=SKINS[0];SKINS.forEach(function(k){if(k[0]===S.skin)f=k;});return f;}
 function setLayout(id,keep){var ok=false;LAYOUTS.forEach(function(l){if(l[0]===id)ok=true;});if(!ok)id='covers';S.layout=id;if(!keep&&!DEMO){try{localStorage.setItem('mywords.layout',id);}catch(e){}}}
@@ -441,16 +442,13 @@ function libItems(){var it=bookTitles().map(function(t){return {t:t,n:bookCount(
 function libraryHtml(){
   var lay=layoutOf(),items=libItems(),rows='',i;
   if(lay==='spines'){
-    var latest=null;S.words.forEach(function(w){if(w.bookTitle&&(!latest||w.added>latest.added))latest=w;});
-    var all=items.slice(),idx=0,first=true;
-    var spine=function(it){var k=hashStr(it.t);return '<button class="spine" data-act="book" data-b="'+esc(it.t)+'" style="--h:'+(118+k%48)+'px;--w:'+(30+(k>>3)%16)+'px;--c:'+SPINES[k%SPINES.length]+'" aria-label="'+esc(it.t)+', '+it.n+' words"><span class="st">'+esc(it.t)+'</span></button>';};
+    var all=items.slice(),idx=0;
+    var stand=function(it){return it.add?'<button class="spine add" data-act="goadd" aria-label="Add a word" style="--h:108px;--w:44px"><span class="st">+ New word</span></button>':'<button class="bk2 facebook" data-act="book" data-b="'+esc(it.t)+'" aria-label="'+esc(it.t)+', '+it.n+' words">'+coverHtml(it.t)+'</button>';};
     while(idx<all.length){
-      var per=first?5:7,chunk=all.slice(idx,idx+per);idx+=per;
-      var r='<div class="spinerow">'+chunk.map(function(it){return it.add?'<button class="spine add" data-act="goadd" aria-label="Add a word" style="--h:140px;--w:34px"><span class="st">+ New word</span></button>':spine(it);}).join('');
-      if(first&&latest)r+='<button class="bk2 facebook" data-act="book" data-b="'+esc(latest.bookTitle)+'" aria-label="Latest book: '+esc(latest.bookTitle)+'">'+coverHtml(latest.bookTitle)+'</button>';
-      rows+=r+'</div><div class="plank"></div><div style="height:16px"></div>';first=false;
+      var chunk=all.slice(idx,idx+4);idx+=4;
+      rows+='<div class="spinerow">'+chunk.map(stand).join('')+'</div><div class="plank"></div><div style="height:16px"></div>';
     }
-    return '<div class="library lay-spines">'+rows+'<p class="hint">Tap a spine to open a book</p></div>';
+    return '<div class="library lay-spines">'+rows+'<p class="hint">Tap a book to open it</p></div>';
   }
   if(lay==='stacks'){
     var piles=[],cur=[];items.forEach(function(it){cur.push(it);if(cur.length===4){piles.push(cur);cur=[];}});if(cur.length)piles.push(cur);
@@ -497,15 +495,10 @@ function vHome(){
   var total=S.words.length,learned=S.words.filter(function(w){return status(w)==='Learned';}).length,due=dueCount(),st=streakNow(),done=doneToday();
   var hr=new Date().getHours(),greet=hr<12?'Good morning':(hr<18?'Good afternoon':'Good evening');
   var pct=Math.min(1,done/goal()),C=2*Math.PI*26;
-  var h=(S.skin==='blossom'?'<div class="deco">'+branchSvg()+'</div>':'')+'<div class="row between"><div><div class="hello">'+greet+', '+esc(S.settings.name||'reader')+'</div><h1>Your word shelf</h1></div><div class="row" style="gap:8px"><button class="streak" data-act="themes" aria-label="Choose a theme">'+ICO.palette+'</button><div class="streak" title="Days in a row">'+ICO.flame+'<span>'+st+'</span></div></div></div>';
-  h+=featHtml();
-  h+='<div class="row between"><h2>Your library</h2><button class="back" data-act="gowords" style="min-height:32px">All words</button></div>'+libraryHtml();
-  h+='<div class="hero"><div class="row"><div class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(0,0,0,.12)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+(C*pct)+' '+C+'" transform="rotate(-90 32 32)"/></svg><b>'+Math.min(done,goal())+'/'+goal()+'</b></div>'+
-    '<div style="flex:1"><h2>'+(done>=goal()?'Goal reached today':'Today\'s reading goal')+'</h2><p class="sub" style="color:var(--ink);opacity:.8">'+(total?(due?due+' word'+(due>1?'s':'')+' waiting for you':'You are all caught up'):'Add the first word you meet in your book')+'</p></div></div>'+
-    '<button class="btn" data-act="'+(total?'gopractice':'goadd')+'">'+(total?'Practice now':'Add a word')+'</button></div>';
-  h+='<div class="cats">'+[['All','#6F58B5',total],['New','#B7A7DB',S.words.filter(function(w){return status(w)==='New';}).length],['Learning','#F2A33A',S.words.filter(function(w){return status(w)==='Learning';}).length],['Learned','#4FA477',learned]].map(function(c){return '<button class="cat" data-act="cat" data-f="'+c[0]+'">'+miniBook(c[1])+c[0]+'<span>'+c[2]+'</span></button>';}).join('')+'</div>';
-  var next=[5,10,25,50,100,250,500,1000].filter(function(m){return m>learned;})[0]||1000,stackN=Math.max(1,Math.min(6,1+Math.floor(total/4)));
-  h+='<div class="card tint-sky"><div class="stack">'+stackSvg(stackN)+'<div style="flex:1;display:flex;flex-direction:column;gap:8px"><h2>'+learned+' word'+(learned===1?'':'s')+' learned</h2><div class="bar"><div style="width:'+Math.round(learned/next*100)+'%"></div></div><span class="note" style="color:var(--sky-ink)">Next goal: '+next+' words learned. Your stack grows as you add words.</span><span class="note" style="color:var(--sky-ink)">Best streak: '+((S.meta.best||0))+' days</span></div></div></div>';
+  var h=(S.skin==='blossom'?'<div class="deco">'+branchSvg()+'</div>':'')+'<div class="row between"><div><div class="hello">'+greet+', '+esc(S.settings.name||'reader')+'</div><h1>My library</h1></div><div class="row" style="gap:8px"><button class="streak" data-act="themes" aria-label="Choose a theme">'+ICO.palette+'</button><div class="streak" title="Days in a row">'+ICO.flame+'<span>'+st+'</span></div></div></div>';
+  h+='<div class="row between"><h2>Your books</h2><button class="back" data-act="gowords" style="min-height:32px">All words</button></div>'+libraryHtml();
+  h+='<button class="goalbar" data-act="'+(total?'gopractice':'goadd')+'"><span class="gb">'+Math.min(done,goal())+'/'+goal()+'</span><span style="flex:1;text-align:left"><b>'+(done>=goal()?'Goal reached today':'Today\'s goal')+'</b><br><span class="note">'+(total?(due?due+' word'+(due>1?'s':'')+' waiting':'All caught up'):'Add your first word')+'</span></span><span class="go">'+(total?'Practice':'Add')+'</span></button>';
+  if(total)h+=featHtml();
   return h;
 }
 function pip(size){
