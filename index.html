@@ -267,7 +267,7 @@ var COVERS=['#3F6FA8','#C94A4A','#3E9C8C','#8A5FB8','#D98A2B','#4D8F5B','#B8587F
 var S={tab:'home',words:[],t:0,open:null,q:'',filter:'All',bookF:'All books',confirmDel:false,
   meta:{streak:0,last:'',best:0,day:{date:'',count:0}},covers:{},settings:{name:'',goal:5,session:10,text:'normal',onboarded:false},stage:'app',ob:1,confirmReset:false,deferred:null,
   info:{},
-  add:{word:'',sentence:'',page:'',book:'',res:null,busy:false,err:'',quick:false},
+  add:{word:'',sentence:'',page:'',book:'',author:'',res:null,busy:false,err:'',quick:false},
   pr:{queue:[],i:0,shown:false,total:0,sentence:'',finished:false,started:false,good:0}};
 var SKINS=[['lavender','Lavender Dream','#F7F3FD','#FFFFFF','#8C6FD6','#D9C7F0','#44356B','covers','Soft lilac and pink'],['mint','Mint Meadow','#F1FAF5','#FFFFFF','#3FA37C','#C9DFC0','#2F5547','gallery','Fresh mint and butter'],['peach','Peach Cream','#FFF4EC','#FFFFFF','#E8806A','#EBC3A7','#5E3A33','floating','Warm peach and cream'],['cozy','Cozy Library','#12292D','#1B3F45','#E8A94B','#1F7F7E','#F7EAD3','covers','Covers on glowing shelves'],['academia','Dark Academia','#1B1110','#2A1A17','#D6A94F','#6B3F26','#F1E3CB','spines','Leather spines on a bookcase'],['cottage','Cottage Stack','#EEF1E2','#F8F8EE','#4F7A42','#B88B5A','#33402F','stacks','Cosy piles of books'],['pastel','Soft Pastel','#F6F0E8','#FCF9F4','#6F58B5','#C99A6B','#3A3050','gallery','Clean cover gallery'],['maple','Autumn Maple','#FDF4E9','#FFFBF5','#8E2A40','#D1A27A','#5A2230','gallery','Warm maple leaves'],['ocean','Ocean Breeze','#EEF8FC','#FFFFFF','#2F8FC0','#B7D5E2','#24506B','floating','Cool bubbles and sea blue'],['blossom','Cherry Blossom','#FBEFEF','#FFF8F6','#B8446A','#D9B4A6','#4A2A3A','gallery','Pink petals and rosy covers'],['midnight','Midnight Library','#0C2428','#133238','#F0B24F','#1F9C98','#F6E7CF','covers','Teal shelves, warm fairy lights'],['sepia','Old Paper','#EADBBE','#F6ECD6','#8B3A2B','#8A5A36','#3A291A','floating','Floating shelves']];
 var saveTimer=null,toastTimer=null;
@@ -380,17 +380,15 @@ function bookCount(t){return S.words.filter(function(w){return (w.bookTitle||'')
 function booksData(){var h='<datalist id="booklist">';bookTitles().forEach(function(b){h+='<option value="'+esc(b)+'">';});return h+'</datalist>';}
 function coverUrl(t){return t&&S.covers[t]?S.covers[t]:'';}
 function coverHtml(t){var u=coverUrl(t);return '<span class="cover'+(u?' has-img':'')+'" style="--c:'+colorFor(t)+'"><i></i><b>'+esc(t)+'</b>'+(u?'<img class="cimg" src="'+esc(u)+'" alt="Cover of '+esc(t)+'" loading="lazy">':'')+'</span>';}
+var CANDS={},CI={};
+async function olSearch(t,au){try{var r=await fetch('https://openlibrary.org/search.json?limit=10&fields=cover_i,author_name&title='+encodeURIComponent(t)+(au?'&author='+encodeURIComponent(au):''));if(!r.ok)return null;var d=await r.json();return (d.docs||[]).filter(function(x){return x.cover_i;}).map(function(x){return {id:x.cover_i,a:(x.author_name||[])[0]||''};});}catch(e){return null;}}
+function applyCover(t,idx){var c=CANDS[t]||[],ua=(S.info[t]||{}).ua||'';CI[t]=idx;S.covers[t]=c[idx]?'https://covers.openlibrary.org/b/id/'+c[idx].id+'-M.jpg':'';S.info[t]={ua:ua,a:ua||(c[idx]&&c[idx].a)||'',c:undefined};save();}
+function rerenderSoft(){var ae=document.activeElement;if(!(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.tagName==='SELECT'))&&(S.tab==='home'||S.tab==='words'||S.tab==='settings'))render();}
 async function fetchCover(t){
-  if(!t||S.covers[t]!==undefined)return;
-  try{
-    var r=await fetch('https://openlibrary.org/search.json?limit=1&fields=cover_i&title='+encodeURIComponent(t));
-    if(!r.ok)return;
-    var d=await r.json(),id=d.docs&&d.docs[0]&&d.docs[0].cover_i;
-    S.covers[t]=id?'https://covers.openlibrary.org/b/id/'+id+'-M.jpg':'';
-    save();
-    var a=document.activeElement;
-    if(!(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT'))&&(S.tab==='home'||S.tab==='words'))render();
-  }catch(e){}
+  if(!t||(S.covers[t]!==undefined&&CANDS[t]))return;
+  if(S.covers[t]!==undefined)return;
+  var l=await olSearch(t,(S.info[t]||{}).ua||'');if(l===null)return;
+  CANDS[t]=l;applyCover(t,0);rerenderSoft();
 }
 var INFOBUSY={};
 function lum(c){var m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(c||'');if(!m)return 0;return (parseInt(m[1],16)*299+parseInt(m[2],16)*587+parseInt(m[3],16)*114)/1000;}
@@ -398,41 +396,34 @@ function inkFor(c){return lum(c)>150?'#2B2230':'#FFF7E8';}
 function spineCol(t){var i=S.info[t];return i&&i.c?i.c:SPINES[hashStr(t)%SPINES.length];}
 function dominant(url){return new Promise(function(res){var im=new Image();im.crossOrigin='anonymous';im.onload=function(){try{var c=document.createElement('canvas');c.width=24;c.height=36;var x=c.getContext('2d');x.drawImage(im,0,0,24,36);var d=x.getImageData(0,0,24,36).data,r=0,g=0,b=0,n=0;for(var i=0;i<d.length;i+=4){var mx=Math.max(d[i],d[i+1],d[i+2]),mn=Math.min(d[i],d[i+1],d[i+2]),w=1+(mx-mn)/16;r+=d[i]*w;g+=d[i+1]*w;b+=d[i+2]*w;n+=w;}r=Math.round(r/n);g=Math.round(g/n);b=Math.round(b/n);var h=function(v){return ('0'+v.toString(16)).slice(-2);};res('#'+h(r)+h(g)+h(b));}catch(e){res('');}};im.onerror=function(){res('');};im.src=url;});}
 async function ensureInfo(t){
-  if(!t||S.info[t]||INFOBUSY[t])return;
-  var u=coverUrl(t);if(S.covers[t]===undefined)return;
+  if(!t||INFOBUSY[t])return;
+  var inf=S.info[t];if(inf&&inf.c!==undefined&&inf.c!==null)return;
+  if(S.covers[t]===undefined)return;
   INFOBUSY[t]=1;
   try{
-    var a='';try{var r=await fetch('https://openlibrary.org/search.json?limit=1&fields=author_name&title='+encodeURIComponent(t));if(r.ok){var d=await r.json();a=(d.docs&&d.docs[0]&&d.docs[0].author_name&&d.docs[0].author_name[0])||'';}}catch(e1){}
+    var u=coverUrl(t),ua=(inf&&inf.ua)||'',a=(inf&&inf.a)||ua||'';
+    if(!a){var l=CANDS[t]||await olSearch(t,ua);if(l&&l[0])a=l[0].a;}
     var c=u?await dominant(u):'';
-    S.info[t]={a:a,c:c};save();
-    var ae=document.activeElement;
-    if(!(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.tagName==='SELECT'))&&(S.tab==='home'||S.tab==='words'||S.tab==='settings'))render();
+    S.info[t]={ua:ua,a:a,c:c};save();rerenderSoft();
   }catch(e){}
   INFOBUSY[t]=0;
 }
 var TMP={},covTimer=null,covBusy='';
-async function coverFor(t){
-  try{
-    var r=await fetch('https://openlibrary.org/search.json?limit=1&fields=cover_i&title='+encodeURIComponent(t));
-    if(!r.ok)return null;
-    var d=await r.json(),id=d.docs&&d.docs[0]&&d.docs[0].cover_i;
-    return id?'https://covers.openlibrary.org/b/id/'+id+'-M.jpg':'';
-  }catch(e){return null;}
-}
+async function coverFor(t,au){var l=await olSearch(t,au);if(l===null)return null;CANDS[t+'|'+au]=l;return l[0]?'https://covers.openlibrary.org/b/id/'+l[0].id+'-M.jpg':'';}
 function updateCovPrev(){
   var el=$('#covprev');if(!el)return;
-  var t=S.add.book.trim(),u=S.covers[t]!==undefined?S.covers[t]:TMP[t],h='';
-  if(t&&covBusy===t)h='<span class="note">Looking for the cover…</span>';
+  var t=S.add.book.trim(),au=S.add.author.trim(),key=t+'|'+au,u=TMP[key]!==undefined?TMP[key]:S.covers[t],h='';
+  if(t&&covBusy===key)h='<span class="note">Looking for the cover…</span>';
   else if(t&&u)h='<img class="cimg thumb" src="'+esc(u)+'" alt="Cover of '+esc(t)+'"><span class="note">Cover found. It will be added to your library.</span>';
   else if(t&&u==='')h='<span class="note">No cover found. A colored cover will be used.</span>';
   el.innerHTML=h;
 }
 function scheduleCover(){
   clearTimeout(covTimer);
-  var t=S.add.book.trim();
-  if(t.length<3||S.covers[t]!==undefined||TMP[t]!==undefined){covBusy='';updateCovPrev();return;}
-  covBusy=t;updateCovPrev();
-  covTimer=setTimeout(async function(){var u=await coverFor(t);if(u!==null)TMP[t]=u;if(covBusy===t)covBusy='';updateCovPrev();},700);
+  var t=S.add.book.trim(),au=S.add.author.trim(),key=t+'|'+au;
+  if(t.length<3||TMP[key]!==undefined||(S.covers[t]!==undefined&&!au)){covBusy='';updateCovPrev();return;}
+  covBusy=key;updateCovPrev();
+  covTimer=setTimeout(async function(){var u=await coverFor(t,au);if(u!==null)TMP[key]=u;if(covBusy===key)covBusy='';updateCovPrev();},700);
 }
 async function fetchCovers(){var ts=bookTitles();for(var i=0;i<ts.length;i++){await fetchCover(ts[i]);}}
 function miniBook(c){return '<svg width="34" height="40" viewBox="0 0 34 40" aria-hidden="true"><rect x="3" y="2" width="28" height="34" rx="3" fill="'+c+'"/><rect x="3" y="2" width="6" height="34" rx="2" fill="rgba(0,0,0,.2)"/><rect x="14" y="10" width="12" height="3" rx="1.5" fill="rgba(255,255,255,.75)"/><rect x="14" y="16" width="9" height="3" rx="1.5" fill="rgba(255,255,255,.55)"/><path d="M22 36v-9l3 3 3-3v9z" fill="#F2A33A"/></svg>';}
@@ -474,6 +465,7 @@ function libraryHtml(){
       var chunk=all.slice(idx,idx+6);idx+=6;
       rows+='<div class="spinerow">'+chunk.map(stand).join('')+'</div><div class="plank"></div><div style="height:16px"></div>';
     }
+    var nr=(rows.match(/class="plank"/g)||[]).length;for(;nr<3;nr++)rows+='<div class="spinerow" style="min-height:150px"></div><div class="plank"></div><div style="height:16px"></div>';
     return '<div class="library lay-spines">'+rows+'<p class="hint">Tap a spine to open a book</p></div>';
   }
   if(lay==='stacks'){
@@ -548,8 +540,6 @@ function vHome(){
   var pct=Math.min(1,done/goal()),C=2*Math.PI*26;
   var h=(DECO[S.skin]?'<div class="deco">'+sceneSvg(S.skin)+'</div>':'')+'<div class="row between"><div><div class="hello">'+greet+', '+esc(S.settings.name||'reader')+'</div><h1>My library</h1></div><div class="row" style="gap:8px"><button class="streak" data-act="themes" aria-label="Choose a theme">'+ICO.palette+'</button><div class="streak" title="Days in a row">'+ICO.flame+'<span>'+st+'</span></div></div></div>';
   h+='<div class="row between"><h2>Your books</h2><button class="back" data-act="gowords" style="min-height:32px">All words</button></div>'+libraryHtml();
-  h+='<button class="goalbar" data-act="'+(total?'gopractice':'goadd')+'"><span class="gb">'+Math.min(done,goal())+'/'+goal()+'</span><span style="flex:1;text-align:left"><b>'+(done>=goal()?'Goal reached today':'Today\'s goal')+'</b><br><span class="note">'+(total?(due?due+' word'+(due>1?'s':'')+' waiting':'All caught up'):'Add your first word')+'</span></span><span class="go">'+(total?'Practice':'Add')+'</span></button>';
-  if(total)h+=featHtml();
   return h;
 }
 function pip(size){
@@ -611,7 +601,7 @@ function vAdd(){
   h+='<div><h1>New word</h1><p class="sub">Type the word. We find the meaning and save it.</p></div>';
   h+='<div class="card tint-lilac"><label for="aw">Word</label><input id="aw" data-in="aw" value="'+esc(a.word)+'" autocomplete="off" autocapitalize="none" spellcheck="false" style="font-size:22px;font-weight:800">'+
      '<button class="btn" data-act="quicksave"'+(a.busy?' disabled':'')+' style="min-height:54px">'+(a.busy?'Finding the meaning…':'Save word')+'</button>'+
-     '<label for="ab">Book</label><input id="ab" data-in="ab" value="'+esc(a.book)+'" list="booklist" placeholder="Title of the book" autocomplete="off">'+booksData()+'<div id="covprev" class="row cprev"></div>'+
+     '<label for="ab">Book</label><input id="ab" data-in="ab" value="'+esc(a.book)+'" list="booklist" placeholder="Title of the book" autocomplete="off">'+booksData()+'<label for="aa">Author (optional, helps find the right cover)</label><input id="aa" data-in="aa" value="'+esc(a.author)+'" placeholder="e.g. Freida McFadden" autocomplete="off"><div id="covprev" class="row cprev"></div>'+
      '<details'+(hasCtx?' open':'')+'><summary style="cursor:pointer;font-weight:800;padding:6px 0">+ Add the sentence and page</summary><label for="as">Sentence from the book</label><textarea id="as" data-in="as" rows="2">'+esc(a.sentence)+'</textarea><label for="ap">Page</label><input id="ap" data-in="ap" value="'+esc(a.page)+'" inputmode="numeric" placeholder="e.g. 42" maxlength="8"></details>'+
      '<button class="btn ghost" data-act="lookup"'+(a.busy?' disabled':'')+'>Just check the meaning</button></div>';
   if(a.err)h+='<div class="err">'+esc(a.err)+'</div>';
@@ -648,6 +638,7 @@ function vDetail(w){
   h+='<div class="card tint-mint"><div class="row between"><div><div class="word">'+esc(w.word)+'</div><div class="pos">'+esc(w.pos)+'</div></div>'+spk(w.word)+'</div>'+
      '<div class="chips">'+(w.ipa?'<span class="pill">'+esc(w.ipa)+'</span>':'')+'<span class="tag t-'+st+'" style="align-self:center">'+st+'</span></div>'+
      '<p style="margin:0;font-size:17px;font-weight:800">'+esc(w.meaning)+'</p>'+(w.example?'<p style="margin:0;font-family:var(--serif);font-style:italic">'+esc(w.example)+'</p>':'')+'</div>';
+  if(w.bookTitle)h+='<div class="card tint-sky"><div class="cap" style="color:var(--sky-ink)">Wrong book cover?</div><label for="bka">Author</label><input id="bka" value="'+esc((S.info[w.bookTitle]||{}).ua||(S.info[w.bookTitle]||{}).a||'')+'" placeholder="e.g. Freida McFadden" autocomplete="off"><div class="row"><button class="btn" data-act="refind" data-b="'+esc(w.bookTitle)+'" style="flex:1">Find cover</button><button class="btn ghost" data-act="nextcover" data-b="'+esc(w.bookTitle)+'" style="flex:1">Try another</button></div></div>';
   if(w.book||w.bookTitle)h+='<div class="card"><div class="cap">In your book</div><div class="row" style="align-items:flex-start">'+(coverUrl(w.bookTitle)?'<img class="cimg thumb-lg" src="'+esc(coverUrl(w.bookTitle))+'" alt="Cover of '+esc(w.bookTitle)+'">':'')+'<div class="quote" style="flex:1">'+(w.book?esc(w.book):'')+(w.bookTitle?'<span class="by">'+esc(w.bookTitle)+(w.page?' · page '+esc(w.page):'')+'</span>':'')+'</div></div></div>';
   h+='<div class="card tint-lilac"><label for="ms">My own sentence</label><textarea id="ms" data-in="ms" rows="2" placeholder="Write a sentence using this word">'+esc(w.mine||'')+'</textarea><button class="btn" data-act="savemine">Save my sentence</button></div>';
   h+=S.confirmDel?'<div class="row"><button class="btn ghost" data-act="delno" style="flex:1">Keep it</button><button class="btn again" data-act="delyes" style="flex:1">Delete word</button></div>':'<button class="btn ghost" data-act="del">Delete this word</button>';
@@ -705,9 +696,10 @@ function saveWord(){
     var now=Date.now();
     S.words.push({id:now.toString(36)+Math.random().toString(36).slice(2,5),word:r.word.trim()||S.add.word.trim(),pos:r.pos,ipa:r.ipa,say:r.say,audio:r.audio||'',meaning:r.meaning.trim(),example:r.example,tip:r.tip,book:S.add.sentence.trim(),page:S.add.page.trim(),bookTitle:S.add.book.trim(),mine:'',added:now,box:0,reviews:0,due:now});
     activity(0);
-    var bt0=S.add.book.trim();if(bt0&&S.covers[bt0]===undefined&&TMP[bt0]!==undefined)S.covers[bt0]=TMP[bt0];
+    var bt0=S.add.book.trim(),au0=S.add.author.trim(),k0=bt0+'|'+au0;
+    if(bt0&&S.covers[bt0]===undefined){if(au0)S.info[bt0]={ua:au0,a:au0,c:undefined};if(CANDS[k0]){CANDS[bt0]=CANDS[k0];applyCover(bt0,0);}else if(TMP[k0]!==undefined)S.covers[bt0]=TMP[k0];}
     if(!DEMO){try{localStorage.setItem('mywords.book',S.add.book.trim());}catch(e2){}}
-    S.add={word:'',sentence:'',page:'',book:S.add.book.trim(),res:null,busy:false,err:'',quick:false};save();fetchCover(S.words[S.words.length-1].bookTitle);toast('Saved to your shelf');S.tab='home';render();$('#view').scrollTop=0;
+    S.add={word:'',sentence:'',page:'',book:S.add.book.trim(),author:S.add.author,res:null,busy:false,err:'',quick:false};save();fetchCover(S.words[S.words.length-1].bookTitle);toast('Saved to your shelf');S.tab='home';render();$('#view').scrollTop=0;
 }
 /* ---------- events ---------- */
 document.addEventListener('input',function(e){
@@ -716,6 +708,7 @@ document.addEventListener('input',function(e){
   if(k==='aw')S.add.word=v;
   else if(k==='as')S.add.sentence=v;
   else if(k==='ap')S.add.page=v;
+  else if(k==='aa'){S.add.author=v;scheduleCover();}
   else if(k==='pm'){var pw=S.pr&&byId(S.pr.queue[S.pr.i]);if(pw){pw.mine=v;save();}}
   else if(k==='ab'){S.add.book=v;scheduleCover();}
   else if(k==='obn'||k==='sn'){S.settings.name=v;save();}
@@ -773,6 +766,8 @@ document.addEventListener('click',function(e){
   else if(act==='del'){S.confirmDel=true;render();}
   else if(act==='delno'){S.confirmDel=false;render();}
   else if(act==='delyes'){S.words=S.words.filter(function(w){return w.id!==S.open;});S.open=null;S.confirmDel=false;save();toast('Deleted');render();}
+  else if(act==='refind'){var bt=b.getAttribute('data-b'),au=($('#bka')||{}).value||'';au=au.trim();S.info[bt]={ua:au,a:au,c:undefined};delete S.covers[bt];delete CANDS[bt];toast('Looking for the cover…');save();fetchCover(bt).then(function(){render();});}
+  else if(act==='nextcover'){(async function(){var bt=b.getAttribute('data-b');if(!CANDS[bt]){var l=await olSearch(bt,(S.info[bt]||{}).ua||'');CANDS[bt]=l||[];}var c=CANDS[bt];if(c.length<2){toast('No other covers found');return;}applyCover(bt,((CI[bt]||0)+1)%c.length);render();})();}
   else if(act==='savemine'){toast('Sentence saved');save();}
   else if(act==='goadd'){S.tab='add';render();$('#view').scrollTop=0;}
   else if(act==='show'){p.shown=true;render();}
