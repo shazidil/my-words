@@ -160,14 +160,14 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .spine::before{top:10px}.spine::after{bottom:10px}
 .spine .st{writing-mode:vertical-rl;font:700 12px var(--serif);color:#F6E7BF;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-height:calc(var(--h) - 44px)}
 .spine.add{background:transparent;border:2px dashed var(--accent);box-shadow:none}.spine.add::before,.spine.add::after{display:none}.spine.add .st{color:var(--accent)}
-.facebook{flex:none;margin-left:0}.lay-spines{border:9px solid var(--plank);border-radius:10px;background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.06) 40%),var(--wall);box-shadow:inset 0 6px 14px rgba(0,0,0,.35),var(--shadow);padding:14px 4px 6px}.lay-spines .spinerow{gap:3px}.lay-spines .facebook .cover{box-shadow:inset 7px 0 0 rgba(0,0,0,.3),inset 9px 0 0 rgba(255,255,255,.12),0 2px 5px rgba(0,0,0,.5)}
+.spine.art{background:linear-gradient(90deg,rgba(0,0,0,.5),rgba(255,255,255,.08) 22%,rgba(0,0,0,.45)),var(--img) 6% 50%/auto 100% no-repeat,var(--c)}.spine.art .st{color:#fff;text-shadow:0 1px 3px #000,0 0 6px rgba(0,0,0,.8);background:rgba(0,0,0,.28);border-radius:3px;padding:6px 1px}.facebook{flex:none;margin-left:0}.lay-spines{border:9px solid var(--plank);border-radius:10px;background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.06) 40%),var(--wall);box-shadow:inset 0 6px 14px rgba(0,0,0,.35),var(--shadow);padding:14px 4px 6px}.lay-spines .spinerow{gap:3px}.lay-spines .facebook .cover{box-shadow:inset 7px 0 0 rgba(0,0,0,.3),inset 9px 0 0 rgba(255,255,255,.12),0 2px 5px rgba(0,0,0,.5)}
 .facebook .cover{height:auto;aspect-ratio:2/3;width:100%;padding:6px 4px 6px 8px;box-shadow:inset 5px 0 0 rgba(0,0,0,.2),0 4px 8px rgba(0,0,0,.45)}
 .facebook .cover::after{display:none}.facebook .cover b{font-size:11px}.facebook .cover i{display:none}
 .hint{font-size:12px;color:var(--muted);margin:2px 0 0;text-align:center}
 .pilerow{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end;padding:0 4px}
 .pile{display:flex;flex-direction:column-reverse;gap:2px}
 .bar2{height:36px;width:var(--w);margin-left:var(--o);border:0;border-radius:4px;background:linear-gradient(rgba(255,255,255,.16),rgba(0,0,0,.18)),var(--c);color:#fff;font:700 12px var(--serif);text-shadow:0 1px 2px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 10px 0 14px;cursor:pointer;position:relative;box-shadow:inset -7px 0 0 rgba(250,240,215,.85),0 2px 3px rgba(0,0,0,.25);text-align:left}
-.bar2 span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1}
+.bar2.art{background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,.15) 40%,rgba(0,0,0,.5)),var(--img) 50% 28%/100% auto no-repeat,var(--c);height:40px}.bar2 span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1}
 .bar2 em{font:800 11px var(--sans);font-style:normal;background:rgba(0,0,0,.28);border-radius:8px;padding:1px 7px;margin-right:8px}
 .bar2.add{background:transparent;border:2px dashed var(--accent);color:var(--accent);text-shadow:none;box-shadow:none;justify-content:center}
 .floatrow{display:grid;grid-template-columns:1fr 1fr;gap:26px;padding:4px 10px 0;align-items:end}
@@ -448,17 +448,17 @@ function libraryHtml(){
   var lay=layoutOf(),items=libItems(),rows='',i;
   if(lay==='spines'){
     var all=items.slice(),idx=0;
-    var stand=function(it){return it.add?'<button class="spine add" data-act="goadd" aria-label="Add a word" style="--h:108px;--w:44px"><span class="st">+ Add</span></button>':(function(){var k=hashStr(it.t);return '<button class="bk2 facebook" data-act="book" data-b="'+esc(it.t)+'" aria-label="'+esc(it.t)+', '+it.n+' words" style="width:'+(50+k%16)+'px;'+(k%5===0?'transform:rotate(7deg);transform-origin:bottom left;margin-right:10px;':'')+'">'+coverHtml(it.t)+'</button>';})();};
+    var stand=function(it){if(it.add)return '<button class="spine add" data-act="goadd" aria-label="Add a word" style="--h:130px;--w:40px"><span class="st">+ Add</span></button>';var k=hashStr(it.t),u=coverUrl(it.t);return '<button class="spine'+(u?' art':'')+'" data-act="book" data-b="'+esc(it.t)+'" style="--h:'+(124+k%44)+'px;--w:'+(38+(k>>3)%14)+'px;--c:'+SPINES[k%SPINES.length]+(u?';--img:url(&quot;'+esc(u)+'&quot;)':'')+'" aria-label="'+esc(it.t)+', '+it.n+' words"><span class="st">'+esc(it.t)+'</span></button>';};
     while(idx<all.length){
-      var chunk=all.slice(idx,idx+5);idx+=5;
+      var chunk=all.slice(idx,idx+6);idx+=6;
       rows+='<div class="spinerow">'+chunk.map(stand).join('')+'</div><div class="plank"></div><div style="height:16px"></div>';
     }
-    return '<div class="library lay-spines">'+rows+'<p class="hint">Tap a book to open it</p></div>';
+    return '<div class="library lay-spines">'+rows+'<p class="hint">Tap a spine to open a book</p></div>';
   }
   if(lay==='stacks'){
     var piles=[],cur=[];items.forEach(function(it){cur.push(it);if(cur.length===4){piles.push(cur);cur=[];}});if(cur.length)piles.push(cur);
     for(i=0;i<piles.length;i+=2){
-      rows+='<div class="pilerow">'+piles.slice(i,i+2).map(function(p){return '<div class="pile">'+p.map(function(it){var k=hashStr(it.t||'x');return it.add?'<button class="bar2 add" data-act="goadd" style="--w:100%;--o:0px">+ New word</button>':'<button class="bar2" data-act="book" data-b="'+esc(it.t)+'" style="--w:'+(78+k%22)+'%;--o:'+((k>>4)%12-4)+'px;--c:'+PILES[k%PILES.length]+'" aria-label="'+esc(it.t)+', '+it.n+' words"><span>'+esc(it.t)+'</span><em>'+it.n+'</em></button>';}).join('')+'</div>';}).join('')+'</div><div class="plank"></div><div style="height:18px"></div>';
+      rows+='<div class="pilerow">'+piles.slice(i,i+2).map(function(p){return '<div class="pile">'+p.map(function(it){var k=hashStr(it.t||'x');return it.add?'<button class="bar2 add" data-act="goadd" style="--w:100%;--o:0px">+ New word</button>':'<button class="bar2'+(coverUrl(it.t)?' art':'')+'" data-act="book" data-b="'+esc(it.t)+'" style="--w:'+(78+k%22)+'%;--o:'+((k>>4)%12-4)+'px;--c:'+PILES[k%PILES.length]+(coverUrl(it.t)?';--img:url(&quot;'+esc(coverUrl(it.t))+'&quot;)':'')+'" aria-label="'+esc(it.t)+', '+it.n+' words"><span>'+esc(it.t)+'</span><em>'+it.n+'</em></button>';}).join('')+'</div>';}).join('')+'</div><div class="plank"></div><div style="height:18px"></div>';
     }
     return '<div class="library lay-stacks">'+rows+'</div>';
   }
