@@ -143,6 +143,27 @@ var SPK='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="cur
 function spk(w){return canSpeak()?'<button class="speak" data-act="speak" data-w="'+esc(w)+'" aria-label="Hear '+esc(w)+'">'+SPK+'</button>':'';}
 
 /* ---------- Claude ---------- */
+function plain(html){var d=new DOMParser().parseFromString(String(html||''),'text/html');return (d.body.textContent||'').replace(/\s+/g,' ').trim();}
+async function fromDictApi(w){
+  var resp=await fetch('https://api.dictionaryapi.dev/v2/entries/en/'+encodeURIComponent(w));
+  if(!resp.ok)throw new Error('nf');
+  var data=await resp.json(),e=data[0],ipa=e.phonetic||'',audio='',m=(e.meanings||[])[0],def=m&&(m.definitions||[])[0],ex='';
+  (e.phonetics||[]).forEach(function(p){if(!ipa&&p.text)ipa=p.text;if(!audio&&p.audio)audio=p.audio;});
+  (e.meanings||[]).forEach(function(mm){(mm.definitions||[]).forEach(function(d){if(!ex&&d.example)ex=d.example;});});
+  if(!def)throw new Error('nodef');
+  return {word:String(e.word||w),pos:String(m.partOfSpeech||''),ipa:ipa,say:'',audio:audio,meaning:String(def.definition),example:ex,tip:''};
+}
+async function fromWikt(w){
+  var resp=await fetch('https://en.wiktionary.org/api/rest_v1/page/definition/'+encodeURIComponent(w.toLowerCase()));
+  if(!resp.ok)throw new Error('nf');
+  var data=await resp.json(),en=data.en;
+  if(!en||!en.length)throw new Error('nodef');
+  var first=en[0],def=null,ex='',i,j;
+  for(i=0;i<first.definitions.length&&!def;i++){var t=plain(first.definitions[i].definition);if(t)def=t;}
+  for(i=0;i<en.length&&!ex;i++){for(j=0;j<en[i].definitions.length&&!ex;j++){var d=en[i].definitions[j],list=d.parsedExamples||d.examples||[];if(list.length){ex=plain(list[0].example||list[0]);}}}
+  if(!def)throw new Error('nodef');
+  return {word:w.toLowerCase(),pos:String(first.partOfSpeech||'').toLowerCase(),ipa:'',say:'',audio:'',meaning:def,example:ex,tip:''};
+}
 async function lookup(){
   var a=S.add,w=a.word.trim();
   if(!w){a.err='Type a word first.';render();return;}
@@ -151,16 +172,9 @@ async function lookup(){
   a.err='';a.res=null;
   a.busy=true;render();
   try{
-    var resp=await fetch('https://api.dictionaryapi.dev/v2/entries/en/'+encodeURIComponent(w));
-    if(!resp.ok)throw new Error('nf');
-    var data=await resp.json(),e=data[0],ipa='',audio='',m=null,def=null,ex='';
-    ipa=e.phonetic||'';
-    (e.phonetics||[]).forEach(function(p){if(!ipa&&p.text)ipa=p.text;if(!audio&&p.audio)audio=p.audio;});
-    m=(e.meanings||[])[0];
-    if(m){def=(m.definitions||[])[0];}
-    (e.meanings||[]).forEach(function(mm){(mm.definitions||[]).forEach(function(d){if(!ex&&d.example)ex=d.example;});});
-    if(!def)throw new Error('nodef');
-    a.res={word:String(e.word||w),pos:String(m.partOfSpeech||''),ipa:ipa,say:'',audio:audio,meaning:String(def.definition),example:ex,tip:''};
+    var r1=null;
+    try{r1=await fromDictApi(w);}catch(e1){r1=await fromWikt(w);}
+    a.res=r1;
   }catch(err){
     a.res={word:w,pos:'',ipa:'',say:'',audio:'',meaning:'',example:'',tip:'',manual:true};
     a.err=(navigator.onLine===false?'You are offline. ':'Word not found. ')+'You can type the meaning yourself.';
