@@ -443,7 +443,7 @@ function libraryHtml(){
   var lay=layoutOf(),items=libItems(),rows='',i;
   if(lay==='spines'){
     var all=items.slice(),idx=0;
-    var stand=function(it){return it.add?'<button class="spine add" data-act="goadd" aria-label="Add a word" style="--h:108px;--w:44px"><span class="st">+ New word</span></button>':'<button class="bk2 facebook" data-act="book" data-b="'+esc(it.t)+'" aria-label="'+esc(it.t)+', '+it.n+' words">'+coverHtml(it.t)+'</button>';};
+    var stand=function(it){return it.add?'<button class="spine add" data-act="goadd" aria-label="Add a word" style="--h:108px;--w:44px"><span class="st">+ Add</span></button>':'<button class="bk2 facebook" data-act="book" data-b="'+esc(it.t)+'" aria-label="'+esc(it.t)+', '+it.n+' words">'+coverHtml(it.t)+'</button>';};
     while(idx<all.length){
       var chunk=all.slice(idx,idx+4);idx+=4;
       rows+='<div class="spinerow">'+chunk.map(stand).join('')+'</div><div class="plank"></div><div style="height:16px"></div>';
